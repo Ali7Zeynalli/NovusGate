@@ -74,6 +74,29 @@ Provides REST API endpoints:
 | `DELETE` | `/api/v1/users/{id}` | Delete user |
 | `GET` | `/health` | Health check |
 
+**Host Firewall Endpoints (`firewall_handlers.go`):**
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/v1/firewall/rules` | Get all firewall rules |
+| `POST` | `/api/v1/firewall/open-port` | Open a port |
+| `POST` | `/api/v1/firewall/close-port` | Close a port |
+| `POST` | `/api/v1/firewall/block-ip` | Block an IP/CIDR |
+| `POST` | `/api/v1/firewall/allow-ip` | Allow an IP/CIDR |
+| `DELETE` | `/api/v1/firewall/rules` | Delete a rule |
+| `POST` | `/api/v1/firewall/reset` | Reset to defaults |
+| `GET` | `/api/v1/firewall/export` | Export rules |
+
+**VPN Firewall Endpoints (`vpn_firewall_handlers.go`):**
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/v1/vpn-firewall/rules` | List VPN rules |
+| `POST` | `/api/v1/vpn-firewall/rules` | Create VPN rule |
+| `PUT` | `/api/v1/vpn-firewall/rules/{id}` | Update VPN rule |
+| `DELETE` | `/api/v1/vpn-firewall/rules/{id}` | Delete VPN rule |
+| `POST` | `/api/v1/vpn-firewall/apply` | Apply rules to iptables |
+
 #### Store Layer (`store/store.go`)
 PostgreSQL database operations:
 

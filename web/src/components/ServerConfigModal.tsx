@@ -139,17 +139,23 @@ export const ServerConfigModal: React.FC<ServerConfigModalProps> = ({
                 <Download className="w-4 h-4" /> Download .conf
               </Button>
             </div>
-            <div className="flex flex-col items-center justify-center space-y-4 p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+            <div className="flex flex-col items-center justify-center space-y-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
               <h3 className="text-sm font-medium text-gray-900 dark:text-white">Mobile Scan</h3>
               {qrCodeUrl ? (
-                <img src={qrCodeUrl} alt="WireGuard QR Code" className="w-48 h-48 border-4 border-white shadow-sm" />
+                <div className="bg-white p-3 rounded-lg shadow-sm">
+                  <img 
+                    src={qrCodeUrl} 
+                    alt="WireGuard QR Code" 
+                    className="w-48 h-48"
+                  />
+                </div>
               ) : (
-                <div className="w-48 h-48 bg-gray-100 flex items-center justify-center text-gray-400">
-                  <QrIcon className="w-8 h-8 opacity-50" />
+                <div className="w-48 h-48 bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-400 rounded-lg">
+                  <QrIcon className="w-10 h-10 opacity-50" />
                 </div>
               )}
-              <p className="text-xs text-center text-gray-500 max-w-[200px]">
-                Scan this code with the WireGuard mobile app to add the tunnel immediately.
+              <p className="text-xs text-center text-gray-500 dark:text-gray-400">
+                WireGuard tətbiqini açın və skan edin
               </p>
             </div>
           </div>

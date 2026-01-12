@@ -80,6 +80,9 @@ Your network — your rules.
 - **Fail2Ban Integration**  
   Built-in SSH brute-force protection with jail management, banned IP viewing, and one-click unban.
 
+- **Firewall Management**  
+  Comprehensive host firewall (iptables) and VPN inter-network firewall with traffic control between VPN networks.
+
 - **Unified Network Overview**  
   Dashboard shows all networks combined with total statistics, plus per-network breakdown.
 
@@ -377,6 +380,56 @@ Access via **Security → Fail2Ban** in the dashboard.
 
 ---
 
+## 🔥 Firewall Management
+
+NovusGate includes a comprehensive firewall management system:
+
+### Host Firewall (iptables)
+
+| Feature | Description |
+|---------|-------------|
+| **Open Ports** | View and manage open ports on the server |
+| **Block IPs** | Block specific IP addresses or CIDR ranges |
+| **Allow IPs** | Whitelist trusted IP addresses |
+| **Chain Management** | View INPUT, OUTPUT, FORWARD chain rules |
+| **Protected Ports** | SSH, WireGuard, and API ports are protected from accidental closure |
+| **Export Rules** | Download current firewall rules for backup |
+| **Reset Firewall** | Restore default NovusGate firewall configuration |
+
+### VPN Firewall (Inter-Network Rules)
+
+Control traffic flow between VPN networks:
+
+| Feature | Description |
+|---------|-------------|
+| **Network-to-Network Rules** | Allow or block traffic between different VPN networks |
+| **Node-Specific Rules** | Create rules for specific nodes |
+| **Protocol Filtering** | Filter by TCP, UDP, ICMP, or all protocols |
+| **Port-Based Rules** | Allow/block specific ports or port ranges |
+| **Priority System** | Rules are processed in priority order (lower = higher priority) |
+| **Auto AllowedIPs** | Client configs automatically include permitted destination networks |
+
+**How VPN Firewall Works:**
+```
+┌─────────────┐     ┌─────────────────┐     ┌─────────────┐
+│ Source Node │ ──► │   VPN Server    │ ──► │ Dest Node   │
+│ (10.10.0.2) │     │ FORWARD chain   │     │ (10.20.0.5) │
+└─────────────┘     │ VPN Rules apply │     └─────────────┘
+                    └─────────────────┘
+```
+
+All VPN traffic flows through the server. VPN firewall rules control the server's FORWARD chain, determining which traffic can be forwarded between networks.
+
+**Example Use Cases:**
+- Allow office network (10.10.0.0/24) to access admin panel (10.99.0.1)
+- Block development network from accessing production servers
+- Allow only HTTP/HTTPS traffic between specific networks
+- Isolate guest network from internal resources
+
+Access via **Firewall** page in the dashboard.
+
+---
+
 ## 📸 Screenshots
 
 ### Web Dashboard
@@ -390,6 +443,10 @@ Access via **Security → Fail2Ban** in the dashboard.
   <img src="web/public/photo/web/6.png" alt="Web 6" width="45%">
   <img src="web/public/photo/web/7.png" alt="Web 7" width="45%">
   <img src="web/public/photo/web/8.png" alt="Web 8" width="45%">
+  <img src="web/public/photo/web/9.png" alt="Web 9" width="45%">
+  <img src="web/public/photo/web/10.png" alt="Web 10" width="45%">
+  <img src="web/public/photo/web/11.png" alt="Web 11" width="45%">
+  <img src="web/public/photo/web/12.png" alt="Web 12" width="45%">
 </div>
 
 ### Installer Interface

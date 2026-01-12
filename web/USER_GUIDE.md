@@ -154,6 +154,90 @@ Manage VPN network configurations:
 - Edit network settings
 - Delete unused networks
 
+### 🔥 Firewall
+
+The Firewall page provides comprehensive control over both host-level and VPN inter-network traffic.
+
+#### Overview Tab
+
+Shows summary statistics:
+- **Total Rules:** All firewall rules across chains
+- **Blocked IPs:** Number of blocked IP addresses
+- **Open Ports:** Ports accepting incoming traffic
+- **VPN Rules:** Inter-network traffic rules
+
+#### Host Rules Tab
+
+Manage iptables rules for the server:
+
+| Feature | Description |
+|---------|-------------|
+| **Chain Selection** | Switch between INPUT, OUTPUT, FORWARD chains |
+| **View Rules** | See all rules with target, protocol, source, destination |
+| **Delete Rules** | Remove non-protected rules |
+| **Protected Rules** | SSH, WireGuard, API rules cannot be deleted |
+
+#### Open Ports Tab
+
+Manage ports accepting incoming connections:
+
+| Column | Description |
+|--------|-------------|
+| Port | Port number |
+| Protocol | TCP, UDP, or Both |
+| Source | Allowed source IP (Any = all) |
+| Interface | Network interface |
+| Status | Open or Protected |
+| Actions | Close port (if not protected) |
+
+**Protected Ports:** SSH (22), WireGuard (51820+), and Admin API ports cannot be closed to prevent lockout.
+
+#### VPN Rules Tab
+
+Control traffic flow between VPN networks:
+
+**Creating a VPN Rule:**
+1. Click **VPN Rule** button
+2. Fill in the form:
+   - **Rule Name:** Descriptive name
+   - **Priority:** Lower number = higher priority (1-1000)
+   - **Source:** Any, Network, Node, or Custom IP
+   - **Destination:** Any, Network, Node, or Custom IP
+   - **Protocol:** All, TCP, UDP, or ICMP
+   - **Port:** Specific port or range (optional)
+   - **Action:** Accept, Drop, or Reject
+3. Click **Create Rule**
+
+**Example Use Cases:**
+- Allow office network to access admin panel
+- Block development network from production
+- Allow only HTTP/HTTPS between networks
+- Isolate guest network from internal resources
+
+**How VPN Rules Work:**
+```
+Source Node → VPN Server (FORWARD chain) → Destination Node
+```
+All VPN traffic flows through the server. VPN rules control which traffic can be forwarded.
+
+**Important:** When you create a VPN rule, the source node's AllowedIPs configuration is automatically updated. Existing connected devices may need to reload their configuration.
+
+#### Blocked IPs Tab
+
+View and manage blocked IP addresses:
+- See all blocked IPs with chain and rule number
+- One-click unblock functionality
+- View associated ports (if port-specific block)
+
+#### Quick Actions
+
+Available on all tabs (except Overview):
+- **Open Port:** Allow incoming traffic on a port
+- **Block IP:** Block traffic from an IP/CIDR
+- **Allow IP:** Whitelist an IP address
+- **Export Rules:** Download current firewall rules
+- **Refresh:** Reload firewall status
+
 ### ⚙️ Settings
 
 #### Change Password

@@ -150,6 +150,95 @@ Reusable component library:
 - User management (admin only)
 - Create/delete dashboard users
 
+#### Firewall (`src/pages/Firewall.tsx`)
+
+Comprehensive firewall management page with multiple tabs:
+
+**Components Structure:**
+```typescript
+// Main component
+export const Firewall: React.FC
+
+// Tab components
+const OverviewTab: React.FC<OverviewTabProps>
+const HostRulesTab: React.FC<HostRulesTabProps>
+const OpenPortsTab: React.FC<OpenPortsTabProps>
+const VPNRulesTab: React.FC<VPNRulesTabProps>
+const BlockedIPsTab: React.FC<BlockedIPsTabProps>
+
+// Modal component
+const VPNRuleModal: React.FC<VPNRuleModalProps>
+```
+
+**API Hooks Used:**
+```typescript
+// Host Firewall
+useFirewallRules()      // GET /api/v1/firewall/rules
+useOpenPort()           // POST /api/v1/firewall/open-port
+useClosePort()          // POST /api/v1/firewall/close-port
+useBlockIP()            // POST /api/v1/firewall/block-ip
+useAllowIP()            // POST /api/v1/firewall/allow-ip
+useDeleteFirewallRule() // DELETE /api/v1/firewall/rules
+useResetFirewall()      // POST /api/v1/firewall/reset
+
+// VPN Firewall
+useVPNFirewallRules()       // GET /api/v1/vpn-firewall/rules
+useCreateVPNFirewallRule()  // POST /api/v1/vpn-firewall/rules
+useUpdateVPNFirewallRule()  // PUT /api/v1/vpn-firewall/rules/:id
+useDeleteVPNFirewallRule()  // DELETE /api/v1/vpn-firewall/rules/:id
+useApplyVPNFirewallRules()  // POST /api/v1/vpn-firewall/apply
+```
+
+**TypeScript Interfaces:**
+```typescript
+interface FirewallRule {
+  number: number;
+  target: string;
+  protocol: string;
+  source: string;
+  destination: string;
+  port?: string;
+  in_interface?: string;
+  out_interface?: string;
+  chain: string;
+  protected: boolean;
+}
+
+interface VPNFirewallRule {
+  id: string;
+  name: string;
+  description?: string;
+  source_type: VPNEndpointType;
+  source_network_id?: string;
+  source_network_name?: string;
+  source_node_id?: string;
+  source_node_name?: string;
+  source_ip?: string;
+  dest_type: VPNEndpointType;
+  dest_network_id?: string;
+  dest_network_name?: string;
+  dest_node_id?: string;
+  dest_node_name?: string;
+  dest_ip?: string;
+  protocol: VPNFirewallProtocol;
+  port?: string;
+  action: VPNFirewallAction;
+  priority: number;
+  enabled: boolean;
+}
+
+type VPNEndpointType = 'any' | 'network' | 'node' | 'custom';
+type VPNFirewallProtocol = 'all' | 'tcp' | 'udp' | 'icmp';
+type VPNFirewallAction = 'accept' | 'drop' | 'reject';
+```
+
+**Key Features:**
+- Tab-based navigation (Overview, Host Rules, Open Ports, VPN Rules, Blocked IPs)
+- Protected port detection (SSH, WireGuard, API)
+- VPN rule priority system
+- Auto AllowedIPs sync when VPN rules change
+- Real-time rule application
+
 ### Modal Components
 
 #### CreateNodeModal

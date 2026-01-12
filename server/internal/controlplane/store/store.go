@@ -425,6 +425,249 @@ func (s *Store) DeleteUser(ctx context.Context, id string) error {
 	return err
 }
 
+// VPN Firewall Rule operations
+
+// ListVPNFirewallRules lists all VPN firewall rules with joined network/node names
+func (s *Store) ListVPNFirewallRules(ctx context.Context) ([]*models.VPNFirewallRule, error) {
+	rows, err := s.db.QueryContext(ctx, `
+		SELECT 
+			fr.id, fr.name, fr.description,
+			fr.source_type, fr.source_network_id, fr.source_node_id, fr.source_ip,
+			fr.dest_type, fr.dest_network_id, fr.dest_node_id, fr.dest_ip,
+			fr.protocol, fr.port, fr.action,
+			fr.priority, fr.enabled, fr.created_at, fr.updated_at,
+			sn.name as source_network_name,
+			snode.name as source_node_name,
+			dn.name as dest_network_name,
+			dnode.name as dest_node_name
+		FROM firewall_rules fr
+		LEFT JOIN networks sn ON fr.source_network_id = sn.id
+		LEFT JOIN nodes snode ON fr.source_node_id = snode.id
+		LEFT JOIN networks dn ON fr.dest_network_id = dn.id
+		LEFT JOIN nodes dnode ON fr.dest_node_id = dnode.id
+		ORDER BY fr.priority ASC, fr.created_at ASC
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	
+	var rules []*models.VPNFirewallRule
+	for rows.Next() {
+		var rule models.VPNFirewallRule
+		var description, sourceIP, destIP, port sql.NullString
+		var sourceNetworkID, sourceNodeID, destNetworkID, destNodeID sql.NullString
+		var sourceNetworkName, sourceNodeName, destNetworkName, destNodeName sql.NullString
+		
+		if err := rows.Scan(
+			&rule.ID, &rule.Name, &description,
+			&rule.SourceType, &sourceNetworkID, &sourceNodeID, &sourceIP,
+			&rule.DestType, &destNetworkID, &destNodeID, &destIP,
+			&rule.Protocol, &port, &rule.Action,
+			&rule.Priority, &rule.Enabled, &rule.CreatedAt, &rule.UpdatedAt,
+			&sourceNetworkName, &sourceNodeName, &destNetworkName, &destNodeName,
+		); err != nil {
+			return nil, err
+		}
+		
+		rule.Description = description.String
+		rule.SourceIP = sourceIP.String
+		rule.DestIP = destIP.String
+		rule.Port = port.String
+		
+		if sourceNetworkID.Valid {
+			rule.SourceNetworkID = &sourceNetworkID.String
+		}
+		if sourceNodeID.Valid {
+			rule.SourceNodeID = &sourceNodeID.String
+		}
+		if destNetworkID.Valid {
+			rule.DestNetworkID = &destNetworkID.String
+		}
+		if destNodeID.Valid {
+			rule.DestNodeID = &destNodeID.String
+		}
+		
+		rule.SourceNetworkName = sourceNetworkName.String
+		rule.SourceNodeName = sourceNodeName.String
+		rule.DestNetworkName = destNetworkName.String
+		rule.DestNodeName = destNodeName.String
+		
+		rules = append(rules, &rule)
+	}
+	return rules, rows.Err()
+}
+
+// GetVPNFirewallRule retrieves a VPN firewall rule by ID
+func (s *Store) GetVPNFirewallRule(ctx context.Context, id string) (*models.VPNFirewallRule, error) {
+	var rule models.VPNFirewallRule
+	var description, sourceIP, destIP, port sql.NullString
+	var sourceNetworkID, sourceNodeID, destNetworkID, destNodeID sql.NullString
+	var sourceNetworkName, sourceNodeName, destNetworkName, destNodeName sql.NullString
+	
+	err := s.db.QueryRowContext(ctx, `
+		SELECT 
+			fr.id, fr.name, fr.description,
+			fr.source_type, fr.source_network_id, fr.source_node_id, fr.source_ip,
+			fr.dest_type, fr.dest_network_id, fr.dest_node_id, fr.dest_ip,
+			fr.protocol, fr.port, fr.action,
+			fr.priority, fr.enabled, fr.created_at, fr.updated_at,
+			sn.name as source_network_name,
+			snode.name as source_node_name,
+			dn.name as dest_network_name,
+			dnode.name as dest_node_name
+		FROM firewall_rules fr
+		LEFT JOIN networks sn ON fr.source_network_id = sn.id
+		LEFT JOIN nodes snode ON fr.source_node_id = snode.id
+		LEFT JOIN networks dn ON fr.dest_network_id = dn.id
+		LEFT JOIN nodes dnode ON fr.dest_node_id = dnode.id
+		WHERE fr.id = $1
+	`, id).Scan(
+		&rule.ID, &rule.Name, &description,
+		&rule.SourceType, &sourceNetworkID, &sourceNodeID, &sourceIP,
+		&rule.DestType, &destNetworkID, &destNodeID, &destIP,
+		&rule.Protocol, &port, &rule.Action,
+		&rule.Priority, &rule.Enabled, &rule.CreatedAt, &rule.UpdatedAt,
+		&sourceNetworkName, &sourceNodeName, &destNetworkName, &destNodeName,
+	)
+	
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	
+	rule.Description = description.String
+	rule.SourceIP = sourceIP.String
+	rule.DestIP = destIP.String
+	rule.Port = port.String
+	
+	if sourceNetworkID.Valid {
+		rule.SourceNetworkID = &sourceNetworkID.String
+	}
+	if sourceNodeID.Valid {
+		rule.SourceNodeID = &sourceNodeID.String
+	}
+	if destNetworkID.Valid {
+		rule.DestNetworkID = &destNetworkID.String
+	}
+	if destNodeID.Valid {
+		rule.DestNodeID = &destNodeID.String
+	}
+	
+	rule.SourceNetworkName = sourceNetworkName.String
+	rule.SourceNodeName = sourceNodeName.String
+	rule.DestNetworkName = destNetworkName.String
+	rule.DestNodeName = destNodeName.String
+	
+	return &rule, nil
+}
+
+// CreateVPNFirewallRule creates a new VPN firewall rule
+func (s *Store) CreateVPNFirewallRule(ctx context.Context, rule *models.VPNFirewallRule) error {
+	if rule.ID == "" {
+		rule.ID = uuid.New().String()
+	}
+	rule.CreatedAt = time.Now()
+	rule.UpdatedAt = time.Now()
+	
+	_, err := s.db.ExecContext(ctx, `
+		INSERT INTO firewall_rules (
+			id, name, description,
+			source_type, source_network_id, source_node_id, source_ip,
+			dest_type, dest_network_id, dest_node_id, dest_ip,
+			protocol, port, action,
+			priority, enabled, created_at, updated_at
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
+	`, rule.ID, rule.Name, nullString(rule.Description),
+		rule.SourceType, nullStringPtr(rule.SourceNetworkID), nullStringPtr(rule.SourceNodeID), nullString(rule.SourceIP),
+		rule.DestType, nullStringPtr(rule.DestNetworkID), nullStringPtr(rule.DestNodeID), nullString(rule.DestIP),
+		rule.Protocol, nullString(rule.Port), rule.Action,
+		rule.Priority, rule.Enabled, rule.CreatedAt, rule.UpdatedAt)
+	
+	return err
+}
+
+// UpdateVPNFirewallRule updates an existing VPN firewall rule
+func (s *Store) UpdateVPNFirewallRule(ctx context.Context, rule *models.VPNFirewallRule) error {
+	rule.UpdatedAt = time.Now()
+	
+	result, err := s.db.ExecContext(ctx, `
+		UPDATE firewall_rules SET
+			name = $2, description = $3,
+			source_type = $4, source_network_id = $5, source_node_id = $6, source_ip = $7,
+			dest_type = $8, dest_network_id = $9, dest_node_id = $10, dest_ip = $11,
+			protocol = $12, port = $13, action = $14,
+			priority = $15, enabled = $16, updated_at = $17
+		WHERE id = $1
+	`, rule.ID, rule.Name, nullString(rule.Description),
+		rule.SourceType, nullStringPtr(rule.SourceNetworkID), nullStringPtr(rule.SourceNodeID), nullString(rule.SourceIP),
+		rule.DestType, nullStringPtr(rule.DestNetworkID), nullStringPtr(rule.DestNodeID), nullString(rule.DestIP),
+		rule.Protocol, nullString(rule.Port), rule.Action,
+		rule.Priority, rule.Enabled, rule.UpdatedAt)
+	
+	if err != nil {
+		return err
+	}
+	
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return sql.ErrNoRows
+	}
+	
+	return nil
+}
+
+// DeleteVPNFirewallRule deletes a VPN firewall rule
+func (s *Store) DeleteVPNFirewallRule(ctx context.Context, id string) error {
+	result, err := s.db.ExecContext(ctx, `DELETE FROM firewall_rules WHERE id = $1`, id)
+	if err != nil {
+		return err
+	}
+	
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return sql.ErrNoRows
+	}
+	
+	return nil
+}
+
+// CreateFirewallAuditLog creates an audit log entry for firewall changes
+func (s *Store) CreateFirewallAuditLog(ctx context.Context, action string, details map[string]interface{}, userIP string) error {
+	id := uuid.New().String()
+	detailsJSON, _ := json.Marshal(details)
+	
+	_, err := s.db.ExecContext(ctx, `
+		INSERT INTO firewall_audit_log (id, action, details, user_ip, created_at)
+		VALUES ($1, $2, $3, $4, $5)
+	`, id, action, detailsJSON, userIP, time.Now())
+	
+	return err
+}
+
+// Helper functions for nullable strings
+func nullString(s string) sql.NullString {
+	if s == "" {
+		return sql.NullString{}
+	}
+	return sql.NullString{String: s, Valid: true}
+}
+
+func nullStringPtr(s *string) sql.NullString {
+	if s == nil || *s == "" {
+		return sql.NullString{}
+	}
+	return sql.NullString{String: *s, Valid: true}
+}
+
 // Helper functions
 
 func nextIP(ip net.IP) net.IP {

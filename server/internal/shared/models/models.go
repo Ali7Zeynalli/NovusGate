@@ -78,3 +78,48 @@ const (
 	EventTypePeerRemoved EventType = "peer_removed"
 	EventTypePeerUpdated EventType = "peer_updated"
 )
+
+// VPNFirewallRule represents a firewall rule for VPN traffic control
+type VPNFirewallRule struct {
+	ID              string    `json:"id"`
+	Name            string    `json:"name"`
+	Description     string    `json:"description,omitempty"`
+	
+	// Source configuration
+	SourceType      string    `json:"source_type"`       // any, network, node, custom
+	SourceNetworkID *string   `json:"source_network_id,omitempty"`
+	SourceNodeID    *string   `json:"source_node_id,omitempty"`
+	SourceIP        string    `json:"source_ip,omitempty"`
+	
+	// Destination configuration
+	DestType        string    `json:"dest_type"`         // any, network, node, custom
+	DestNetworkID   *string   `json:"dest_network_id,omitempty"`
+	DestNodeID      *string   `json:"dest_node_id,omitempty"`
+	DestIP          string    `json:"dest_ip,omitempty"`
+	
+	// Rule details
+	Protocol        string    `json:"protocol"`          // tcp, udp, icmp, all
+	Port            string    `json:"port,omitempty"`    // port or range
+	Action          string    `json:"action"`            // accept, drop, reject
+	
+	// Metadata
+	Priority        int       `json:"priority"`
+	Enabled         bool      `json:"enabled"`
+	CreatedAt       time.Time `json:"created_at"`
+	UpdatedAt       time.Time `json:"updated_at"`
+	
+	// Joined fields for display (not stored in DB)
+	SourceNetworkName string  `json:"source_network_name,omitempty"`
+	SourceNodeName    string  `json:"source_node_name,omitempty"`
+	DestNetworkName   string  `json:"dest_network_name,omitempty"`
+	DestNodeName      string  `json:"dest_node_name,omitempty"`
+}
+
+// FirewallAuditLog represents an audit log entry for firewall changes
+type FirewallAuditLog struct {
+	ID        string                 `json:"id"`
+	Action    string                 `json:"action"`
+	Details   map[string]interface{} `json:"details,omitempty"`
+	UserIP    string                 `json:"user_ip,omitempty"`
+	CreatedAt time.Time              `json:"created_at"`
+}

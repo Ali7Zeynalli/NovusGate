@@ -150,6 +150,95 @@ Təkrar istifadə edilən komponent kitabxanası:
 - İstifadəçi idarəçiliyi (yalnız admin)
 - Dashboard istifadəçilərini yaratma/silmə
 
+#### Firewall (`src/pages/Firewall.tsx`)
+
+Çoxlu tab-lı hərtərəfli firewall idarəetmə səhifəsi:
+
+**Komponent Strukturu:**
+```typescript
+// Əsas komponent
+export const Firewall: React.FC
+
+// Tab komponentləri
+const OverviewTab: React.FC<OverviewTabProps>
+const HostRulesTab: React.FC<HostRulesTabProps>
+const OpenPortsTab: React.FC<OpenPortsTabProps>
+const VPNRulesTab: React.FC<VPNRulesTabProps>
+const BlockedIPsTab: React.FC<BlockedIPsTabProps>
+
+// Modal komponent
+const VPNRuleModal: React.FC<VPNRuleModalProps>
+```
+
+**İstifadə Olunan API Hook-ları:**
+```typescript
+// Host Firewall
+useFirewallRules()      // GET /api/v1/firewall/rules
+useOpenPort()           // POST /api/v1/firewall/open-port
+useClosePort()          // POST /api/v1/firewall/close-port
+useBlockIP()            // POST /api/v1/firewall/block-ip
+useAllowIP()            // POST /api/v1/firewall/allow-ip
+useDeleteFirewallRule() // DELETE /api/v1/firewall/rules
+useResetFirewall()      // POST /api/v1/firewall/reset
+
+// VPN Firewall
+useVPNFirewallRules()       // GET /api/v1/vpn-firewall/rules
+useCreateVPNFirewallRule()  // POST /api/v1/vpn-firewall/rules
+useUpdateVPNFirewallRule()  // PUT /api/v1/vpn-firewall/rules/:id
+useDeleteVPNFirewallRule()  // DELETE /api/v1/vpn-firewall/rules/:id
+useApplyVPNFirewallRules()  // POST /api/v1/vpn-firewall/apply
+```
+
+**TypeScript İnterfeysləri:**
+```typescript
+interface FirewallRule {
+  number: number;
+  target: string;
+  protocol: string;
+  source: string;
+  destination: string;
+  port?: string;
+  in_interface?: string;
+  out_interface?: string;
+  chain: string;
+  protected: boolean;
+}
+
+interface VPNFirewallRule {
+  id: string;
+  name: string;
+  description?: string;
+  source_type: VPNEndpointType;
+  source_network_id?: string;
+  source_network_name?: string;
+  source_node_id?: string;
+  source_node_name?: string;
+  source_ip?: string;
+  dest_type: VPNEndpointType;
+  dest_network_id?: string;
+  dest_network_name?: string;
+  dest_node_id?: string;
+  dest_node_name?: string;
+  dest_ip?: string;
+  protocol: VPNFirewallProtocol;
+  port?: string;
+  action: VPNFirewallAction;
+  priority: number;
+  enabled: boolean;
+}
+
+type VPNEndpointType = 'any' | 'network' | 'node' | 'custom';
+type VPNFirewallProtocol = 'all' | 'tcp' | 'udp' | 'icmp';
+type VPNFirewallAction = 'accept' | 'drop' | 'reject';
+```
+
+**Əsas Xüsusiyyətlər:**
+- Tab əsaslı naviqasiya (Overview, Host Rules, Open Ports, VPN Rules, Blocked IPs)
+- Qorunan port aşkarlanması (SSH, WireGuard, API)
+- VPN qayda prioritet sistemi
+- VPN qaydaları dəyişdikdə avtomatik AllowedIPs sinxronizasiyası
+- Real vaxt qayda tətbiqi
+
 ### Modal Komponentləri
 
 #### CreateNodeModal

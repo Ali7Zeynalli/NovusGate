@@ -112,6 +112,18 @@ func (m *Manager) AddPeer(publicKey, allowedIPs string) error {
 	return nil
 }
 
+// UpdatePeerAllowedIPs updates the allowed-ips for an existing peer
+func (m *Manager) UpdatePeerAllowedIPs(publicKey, allowedIPs string) error {
+	// wg set wg0 peer <key> allowed-ips <ips>
+	// This command updates the peer if it exists
+	cmd := exec.Command("wg", "set", m.InterfaceName, "peer", publicKey, "allowed-ips", allowedIPs)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("failed to update peer allowed-ips: %s: %w", string(output), err)
+	}
+	return nil
+}
+
 // RemovePeer removes a peer from the running interface
 func (m *Manager) RemovePeer(publicKey string) error {
 	// wg set wg0 peer <key> remove

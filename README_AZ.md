@@ -80,6 +80,9 @@ Sizin şəbəkəniz — sizin qaydalarınız.
 - **Fail2Ban İnteqrasiyası**
   SSH brute-force hücumlarından qorunma, jail idarəetməsi, bloklanmış IP-lərin görüntülənməsi və bir kliklə blokdan çıxarma.
 
+- **Firewall İdarəetməsi**
+  Hərtərəfli host firewall (iptables) və VPN şəbəkələrarası firewall ilə VPN şəbəkələri arasında trafik nəzarəti.
+
 - **Vahid Şəbəkə İcmalı**
   Dashboard bütün şəbəkələri birləşdirilmiş ümumi statistika ilə, həmçinin hər şəbəkə üzrə ayrıca göstəricilərlə göstərir.
 
@@ -376,6 +379,56 @@ Dashboard-da **Security → Fail2Ban** bölməsindən daxil olun.
 
 ---
 
+## 🔥 Firewall İdarəetməsi
+
+NovusGate hərtərəfli firewall idarəetmə sistemi ilə gəlir:
+
+### Host Firewall (iptables)
+
+| Xüsusiyyət | Təsvir |
+|------------|--------|
+| **Açıq Portlar** | Serverdəki açıq portları görün və idarə edin |
+| **IP Bloklama** | Müəyyən IP ünvanlarını və ya CIDR aralıqlarını bloklayın |
+| **IP İcazə** | Etibarlı IP ünvanlarını ağ siyahıya əlavə edin |
+| **Chain İdarəetməsi** | INPUT, OUTPUT, FORWARD chain qaydalarını görün |
+| **Qorunan Portlar** | SSH, WireGuard və API portları təsadüfi bağlanmadan qorunur |
+| **Qaydaları Export Et** | Cari firewall qaydalarını ehtiyat nüsxə üçün yükləyin |
+| **Firewall Sıfırla** | Defolt NovusGate firewall konfiqurasiyasını bərpa edin |
+
+### VPN Firewall (Şəbəkələrarası Qaydalar)
+
+VPN şəbəkələri arasında trafik axınını idarə edin:
+
+| Xüsusiyyət | Təsvir |
+|------------|--------|
+| **Şəbəkədən-Şəbəkəyə Qaydalar** | Müxtəlif VPN şəbəkələri arasında trafikə icazə verin və ya bloklayın |
+| **Node-Spesifik Qaydalar** | Müəyyən node-lar üçün qaydalar yaradın |
+| **Protokol Filtri** | TCP, UDP, ICMP və ya bütün protokollar üzrə filtrləyin |
+| **Port Əsaslı Qaydalar** | Müəyyən portlara və ya port aralıqlarına icazə verin/bloklayın |
+| **Prioritet Sistemi** | Qaydalar prioritet sırasına görə işlənir (aşağı = yüksək prioritet) |
+| **Avtomatik AllowedIPs** | Client konfiqləri avtomatik olaraq icazə verilmiş hədəf şəbəkələri əhatə edir |
+
+**VPN Firewall Necə İşləyir:**
+```
+┌─────────────┐     ┌─────────────────┐     ┌─────────────┐
+│ Mənbə Node  │ ──► │   VPN Server    │ ──► │ Hədəf Node  │
+│ (10.10.0.2) │     │ FORWARD chain   │     │ (10.20.0.5) │
+└─────────────┘     │ VPN Qaydaları   │     └─────────────┘
+                    └─────────────────┘
+```
+
+Bütün VPN trafiki server üzərindən keçir. VPN firewall qaydaları serverin FORWARD chain-ini idarə edir və hansı trafikin şəbəkələr arasında yönləndirilə biləcəyini müəyyən edir.
+
+**İstifadə Nümunələri:**
+- Ofis şəbəkəsinin (10.10.0.0/24) admin panelinə (10.99.0.1) girişinə icazə vermək
+- Development şəbəkəsinin production serverlərə girişini bloklamaq
+- Müəyyən şəbəkələr arasında yalnız HTTP/HTTPS trafikinə icazə vermək
+- Qonaq şəbəkəsini daxili resurslardan izolyasiya etmək
+
+Dashboard-da **Firewall** səhifəsindən daxil olun.
+
+---
+
 ## 📸 Ekran Görüntüləri (Screenshots)
 
 ### Web Dashboard (İdarə Paneli)
@@ -389,6 +442,10 @@ Dashboard-da **Security → Fail2Ban** bölməsindən daxil olun.
   <img src="web/public/photo/web/6.png" alt="Web 6" width="45%">
   <img src="web/public/photo/web/7.png" alt="Web 7" width="45%">
   <img src="web/public/photo/web/8.png" alt="Web 8" width="45%">
+  <img src="web/public/photo/web/9.png" alt="Web 9" width="45%">
+  <img src="web/public/photo/web/10.png" alt="Web 10" width="45%">
+  <img src="web/public/photo/web/11.png" alt="Web 11" width="45%">
+  <img src="web/public/photo/web/12.png" alt="Web 12" width="45%">
 </div>
 
 ### Installer (Quraşdırıcı)

@@ -149,6 +149,27 @@ NovusGate supports multiple VPN networks:
 | `/api/v1/users` | POST | Create new user |
 | `/api/v1/users/{id}` | DELETE | Delete user |
 
+### Host Firewall
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/v1/firewall/rules` | GET | Get all firewall rules and status |
+| `/api/v1/firewall/open-port` | POST | Open a port for incoming traffic |
+| `/api/v1/firewall/close-port` | POST | Close an open port |
+| `/api/v1/firewall/block-ip` | POST | Block an IP address or CIDR |
+| `/api/v1/firewall/allow-ip` | POST | Allow an IP address or CIDR |
+| `/api/v1/firewall/rules` | DELETE | Delete a firewall rule |
+| `/api/v1/firewall/reset` | POST | Reset firewall to default config |
+| `/api/v1/firewall/export` | GET | Export firewall rules as text |
+
+### VPN Firewall (Inter-Network Rules)
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/v1/vpn-firewall/rules` | GET | List all VPN firewall rules |
+| `/api/v1/vpn-firewall/rules` | POST | Create a new VPN rule |
+| `/api/v1/vpn-firewall/rules/{id}` | PUT | Update a VPN rule |
+| `/api/v1/vpn-firewall/rules/{id}` | DELETE | Delete a VPN rule |
+| `/api/v1/vpn-firewall/apply` | POST | Apply VPN rules to iptables |
+
 ## Node Statuses
 
 | Status | Description | Color |

@@ -7,6 +7,7 @@ import { NodesPage, NodeDetailPage } from './pages/Nodes';
 import { SettingsPage } from './pages/Settings';
 import { Networks } from './pages/Networks';
 import { Fail2BanPage } from './pages/Fail2Ban';
+import { Firewall } from './pages/Firewall';
 
 // Create React Query client
 const queryClient = new QueryClient({
@@ -133,6 +134,7 @@ function App() {
             <Route path="networks" element={<Networks />} />
             <Route path="nodes" element={<NodesPage />} />
             <Route path="nodes/:id" element={<NodeDetailPage />} />
+            <Route path="firewall" element={<Firewall />} />
             <Route path="fail2ban" element={<Fail2BanPage />} />
             <Route path="settings" element={<SettingsPage />} />
           </Route>

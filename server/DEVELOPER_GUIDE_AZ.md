@@ -74,6 +74,29 @@ REST API endpoint-lərini təmin edir:
 | `DELETE` | `/api/v1/users/{id}` | İstifadəçi sil |
 | `GET` | `/health` | Sağlamlıq yoxlaması |
 
+**Host Firewall Endpoint-ləri (`firewall_handlers.go`):**
+
+| Metod | Endpoint | Təsvir |
+|-------|----------|--------|
+| `GET` | `/api/v1/firewall/rules` | Bütün firewall qaydalarını al |
+| `POST` | `/api/v1/firewall/open-port` | Port aç |
+| `POST` | `/api/v1/firewall/close-port` | Port bağla |
+| `POST` | `/api/v1/firewall/block-ip` | IP/CIDR blokla |
+| `POST` | `/api/v1/firewall/allow-ip` | IP/CIDR-ə icazə ver |
+| `DELETE` | `/api/v1/firewall/rules` | Qayda sil |
+| `POST` | `/api/v1/firewall/reset` | Defolta sıfırla |
+| `GET` | `/api/v1/firewall/export` | Qaydaları export et |
+
+**VPN Firewall Endpoint-ləri (`vpn_firewall_handlers.go`):**
+
+| Metod | Endpoint | Təsvir |
+|-------|----------|--------|
+| `GET` | `/api/v1/vpn-firewall/rules` | VPN qaydalarını siyahıla |
+| `POST` | `/api/v1/vpn-firewall/rules` | VPN qaydası yarat |
+| `PUT` | `/api/v1/vpn-firewall/rules/{id}` | VPN qaydasını yenilə |
+| `DELETE` | `/api/v1/vpn-firewall/rules/{id}` | VPN qaydasını sil |
+| `POST` | `/api/v1/vpn-firewall/apply` | Qaydaları iptables-ə tətbiq et |
+
 #### Store Layer (`store/store.go`)
 PostgreSQL verilənlər bazası əməliyyatları:
 

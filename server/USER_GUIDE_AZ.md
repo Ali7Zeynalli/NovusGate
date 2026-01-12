@@ -154,6 +154,27 @@ Server REST API təmin edir:
 | `/api/v1/users` | POST | Yeni istifadəçi yarat |
 | `/api/v1/users/{id}` | DELETE | İstifadəçi sil |
 
+### Host Firewall
+| Endpoint | Metod | Təsvir |
+|----------|-------|--------|
+| `/api/v1/firewall/rules` | GET | Bütün firewall qaydalarını və statusunu al |
+| `/api/v1/firewall/open-port` | POST | Gələn trafik üçün port aç |
+| `/api/v1/firewall/close-port` | POST | Açıq portu bağla |
+| `/api/v1/firewall/block-ip` | POST | IP ünvanı və ya CIDR-i blokla |
+| `/api/v1/firewall/allow-ip` | POST | IP ünvanı və ya CIDR-ə icazə ver |
+| `/api/v1/firewall/rules` | DELETE | Firewall qaydasını sil |
+| `/api/v1/firewall/reset` | POST | Firewall-u defolt konfiqurasiyaya sıfırla |
+| `/api/v1/firewall/export` | GET | Firewall qaydalarını mətn olaraq export et |
+
+### VPN Firewall (Şəbəkələrarası Qaydalar)
+| Endpoint | Metod | Təsvir |
+|----------|-------|--------|
+| `/api/v1/vpn-firewall/rules` | GET | Bütün VPN firewall qaydalarını siyahıla |
+| `/api/v1/vpn-firewall/rules` | POST | Yeni VPN qaydası yarat |
+| `/api/v1/vpn-firewall/rules/{id}` | PUT | VPN qaydasını yenilə |
+| `/api/v1/vpn-firewall/rules/{id}` | DELETE | VPN qaydasını sil |
+| `/api/v1/vpn-firewall/apply` | POST | VPN qaydalarını iptables-ə tətbiq et |
+
 ### Sağlamlıq
 | Endpoint | Metod | Təsvir |
 |----------|-------|--------|

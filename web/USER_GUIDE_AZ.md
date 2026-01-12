@@ -153,6 +153,90 @@ VPN şəbəkə konfiqurasiyalarını idarə edin:
 - Şəbəkə parametrlərini redaktə edin
 - İstifadə olunmayan şəbəkələri silin
 
+### 🔥 Firewall
+
+Firewall səhifəsi həm host səviyyəsində, həm də VPN şəbəkələrarası trafik üzərində hərtərəfli nəzarət təmin edir.
+
+#### Overview Tab (İcmal)
+
+Xülasə statistikasını göstərir:
+- **Ümumi Qaydalar:** Bütün chain-lərdəki firewall qaydaları
+- **Bloklanmış IP-lər:** Bloklanmış IP ünvanlarının sayı
+- **Açıq Portlar:** Gələn trafikə icazə verən portlar
+- **VPN Qaydaları:** Şəbəkələrarası trafik qaydaları
+
+#### Host Rules Tab (Host Qaydaları)
+
+Server üçün iptables qaydalarını idarə edin:
+
+| Xüsusiyyət | Təsvir |
+|------------|--------|
+| **Chain Seçimi** | INPUT, OUTPUT, FORWARD chain-ləri arasında keçid |
+| **Qaydaları Gör** | Hədəf, protokol, mənbə, təyinat ilə bütün qaydaları görün |
+| **Qaydaları Sil** | Qorunmayan qaydaları silin |
+| **Qorunan Qaydalar** | SSH, WireGuard, API qaydaları silinə bilməz |
+
+#### Open Ports Tab (Açıq Portlar)
+
+Gələn əlaqələri qəbul edən portları idarə edin:
+
+| Sütun | Təsvir |
+|-------|--------|
+| Port | Port nömrəsi |
+| Protokol | TCP, UDP və ya Hər ikisi |
+| Mənbə | İcazə verilən mənbə IP (Any = hamısı) |
+| Interface | Şəbəkə interfeysi |
+| Status | Açıq və ya Qorunan |
+| Əməliyyatlar | Portu bağla (qorunmayan isə) |
+
+**Qorunan Portlar:** SSH (22), WireGuard (51820+) və Admin API portları bağlana bilməz ki, serverdən kəsilməyəsiniz.
+
+#### VPN Rules Tab (VPN Qaydaları)
+
+VPN şəbəkələri arasında trafik axınını idarə edin:
+
+**VPN Qaydası Yaratmaq:**
+1. **VPN Rule** düyməsinə klikləyin
+2. Formu doldurun:
+   - **Qayda Adı:** Təsviri ad
+   - **Prioritet:** Aşağı rəqəm = yüksək prioritet (1-1000)
+   - **Mənbə:** Any, Şəbəkə, Node və ya Xüsusi IP
+   - **Təyinat:** Any, Şəbəkə, Node və ya Xüsusi IP
+   - **Protokol:** Hamısı, TCP, UDP və ya ICMP
+   - **Port:** Müəyyən port və ya aralıq (istəyə bağlı)
+   - **Əməliyyat:** Accept, Drop və ya Reject
+3. **Create Rule** klikləyin
+
+**İstifadə Nümunələri:**
+- Ofis şəbəkəsinin admin panelinə girişinə icazə vermək
+- Development şəbəkəsinin production-a girişini bloklamaq
+- Şəbəkələr arasında yalnız HTTP/HTTPS-ə icazə vermək
+- Qonaq şəbəkəsini daxili resurslardan izolyasiya etmək
+
+**VPN Qaydaları Necə İşləyir:**
+```
+Mənbə Node → VPN Server (FORWARD chain) → Hədəf Node
+```
+Bütün VPN trafiki server üzərindən keçir. VPN qaydaları hansı trafikin yönləndirilə biləcəyini idarə edir.
+
+**Vacib:** VPN qaydası yaratdıqda, mənbə node-un AllowedIPs konfiqurasiyası avtomatik yenilənir. Mövcud qoşulmuş cihazlar konfiqurasiyanı yenidən yükləməli ola bilər.
+
+#### Blocked IPs Tab (Bloklanmış IP-lər)
+
+Bloklanmış IP ünvanlarını görün və idarə edin:
+- Bütün bloklanmış IP-ləri chain və qayda nömrəsi ilə görün
+- Bir kliklə blokdan çıxarma funksiyası
+- Əlaqəli portları görün (port-spesifik blok isə)
+
+#### Sürətli Əməliyyatlar
+
+Bütün tab-larda mövcuddur (Overview xaric):
+- **Open Port:** Portda gələn trafikə icazə verin
+- **Block IP:** IP/CIDR-dən gələn trafiki bloklayın
+- **Allow IP:** IP ünvanını ağ siyahıya əlavə edin
+- **Export Rules:** Cari firewall qaydalarını yükləyin
+- **Refresh:** Firewall statusunu yeniləyin
+
 ### Settings (Tənzimləmələr)
 
 #### Şifrəni Dəyişmək

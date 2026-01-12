@@ -299,6 +299,24 @@ func (s *Server) setupRoutes() {
 	// All Networks Stats (for dashboard)
 	api.HandleFunc("/stats/overview", s.handleStatsOverview).Methods("GET")
 
+	// Host Firewall Management
+	api.HandleFunc("/firewall/host/rules", s.handleFirewallGetRules).Methods("GET")
+	api.HandleFunc("/firewall/host/port/open", s.handleFirewallOpenPort).Methods("POST")
+	api.HandleFunc("/firewall/host/port/close", s.handleFirewallClosePort).Methods("POST")
+	api.HandleFunc("/firewall/host/ip/block", s.handleFirewallBlockIP).Methods("POST")
+	api.HandleFunc("/firewall/host/ip/allow", s.handleFirewallAllowIP).Methods("POST")
+	api.HandleFunc("/firewall/host/rules/delete", s.handleFirewallDeleteRule).Methods("POST")
+	api.HandleFunc("/firewall/host/export", s.handleFirewallExport).Methods("GET")
+	api.HandleFunc("/firewall/host/import", s.handleFirewallImport).Methods("POST")
+	api.HandleFunc("/firewall/host/reset", s.handleFirewallReset).Methods("POST")
+
+	// VPN Firewall Management
+	api.HandleFunc("/firewall/vpn/rules", s.handleVPNFirewallGetRules).Methods("GET")
+	api.HandleFunc("/firewall/vpn/rules", s.handleVPNFirewallCreateRule).Methods("POST")
+	api.HandleFunc("/firewall/vpn/rules/{id}", s.handleVPNFirewallUpdateRule).Methods("PUT")
+	api.HandleFunc("/firewall/vpn/rules/{id}", s.handleVPNFirewallDeleteRule).Methods("DELETE")
+	api.HandleFunc("/firewall/vpn/apply", s.handleVPNFirewallApply).Methods("POST")
+
 	// Helper for SPA (Single Page Application) serving
 	s.router.PathPrefix("/").HandlerFunc(s.handleSPA)
 }

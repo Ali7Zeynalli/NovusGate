@@ -7,6 +7,15 @@ import type {
   Fail2BanStatus,
   Fail2BanLogs,
   StatsOverview,
+  FirewallStatus,
+  OpenPortRequest,
+  ClosePortRequest,
+  BlockIPRequest,
+  AllowIPRequest,
+  DeleteRuleRequest,
+  ImportRulesRequest,
+  VPNFirewallRule,
+  VPNFirewallRuleRequest,
 } from '../types';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
@@ -221,6 +230,100 @@ class ApiClient {
     const { data } = await this.client.get('/stats/overview');
     return data;
   }
+
+  // =====================
+  // Host Firewall Methods
+  // =====================
+
+  // Get all iptables rules (optionally filtered by chain)
+  async getFirewallRules(chain?: string): Promise<FirewallStatus> {
+    const params = chain ? { chain } : {};
+    const { data } = await this.client.get<FirewallStatus>('/firewall/host/rules', { params });
+    return data;
+  }
+
+  // Open a port in the firewall
+  async openPort(request: OpenPortRequest): Promise<any> {
+    const { data } = await this.client.post('/firewall/host/port/open', request);
+    return data;
+  }
+
+  // Close a port in the firewall
+  async closePort(request: ClosePortRequest): Promise<any> {
+    const { data } = await this.client.post('/firewall/host/port/close', request);
+    return data;
+  }
+
+  // Block an IP address
+  async blockIP(request: BlockIPRequest): Promise<any> {
+    const { data } = await this.client.post('/firewall/host/ip/block', request);
+    return data;
+  }
+
+  // Allow an IP address
+  async allowIP(request: AllowIPRequest): Promise<any> {
+    const { data } = await this.client.post('/firewall/host/ip/allow', request);
+    return data;
+  }
+
+  // Delete a firewall rule
+  async deleteFirewallRule(request: DeleteRuleRequest): Promise<any> {
+    const { data } = await this.client.delete('/firewall/host/rules', { data: request });
+    return data;
+  }
+
+  // Export firewall rules (iptables-save format)
+  async exportFirewallRules(): Promise<string> {
+    const { data } = await this.client.get('/firewall/host/export', {
+      responseType: 'text',
+    });
+    return data;
+  }
+
+  // Import firewall rules (iptables-restore format)
+  async importFirewallRules(request: ImportRulesRequest): Promise<any> {
+    const { data } = await this.client.post('/firewall/host/import', request);
+    return data;
+  }
+
+  // Reset firewall to default NovusGate configuration
+  async resetFirewall(): Promise<any> {
+    const { data } = await this.client.post('/firewall/host/reset');
+    return data;
+  }
+
+  // ====================
+  // VPN Firewall Methods
+  // ====================
+
+  // Get all VPN firewall rules
+  async getVPNFirewallRules(): Promise<VPNFirewallRule[]> {
+    const { data } = await this.client.get<VPNFirewallRule[]>('/firewall/vpn/rules');
+    return data;
+  }
+
+  // Create a VPN firewall rule
+  async createVPNFirewallRule(request: VPNFirewallRuleRequest): Promise<VPNFirewallRule> {
+    const { data } = await this.client.post<VPNFirewallRule>('/firewall/vpn/rules', request);
+    return data;
+  }
+
+  // Update a VPN firewall rule
+  async updateVPNFirewallRule(id: string, request: VPNFirewallRuleRequest): Promise<VPNFirewallRule> {
+    const { data } = await this.client.put<VPNFirewallRule>(`/firewall/vpn/rules/${id}`, request);
+    return data;
+  }
+
+  // Delete a VPN firewall rule
+  async deleteVPNFirewallRule(id: string): Promise<void> {
+    await this.client.delete(`/firewall/vpn/rules/${id}`);
+  }
+
+  // Apply all VPN firewall rules to iptables
+  async applyVPNFirewallRules(): Promise<any> {
+    const { data } = await this.client.post('/firewall/vpn/apply');
+    return data;
+  }
 }
 
 export const api = new ApiClient();
@@ -402,5 +505,140 @@ export function useStatsOverview() {
     queryKey: ['stats', 'overview'],
     queryFn: () => api.getStatsOverview(),
     refetchInterval: 30000,
+  });
+}
+
+// =====================
+// Host Firewall Hooks
+// =====================
+
+export function useFirewallRules(chain?: string) {
+  return useQuery({
+    queryKey: ['firewall', 'host', 'rules', chain],
+    queryFn: () => api.getFirewallRules(chain),
+    refetchInterval: 30000,
+  });
+}
+
+export function useOpenPort() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (request: OpenPortRequest) => api.openPort(request),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['firewall', 'host'] });
+    },
+  });
+}
+
+export function useClosePort() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (request: ClosePortRequest) => api.closePort(request),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['firewall', 'host'] });
+    },
+  });
+}
+
+export function useBlockIP() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (request: BlockIPRequest) => api.blockIP(request),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['firewall', 'host'] });
+    },
+  });
+}
+
+export function useAllowIP() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (request: AllowIPRequest) => api.allowIP(request),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['firewall', 'host'] });
+    },
+  });
+}
+
+export function useDeleteFirewallRule() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (request: DeleteRuleRequest) => api.deleteFirewallRule(request),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['firewall', 'host'] });
+    },
+  });
+}
+
+export function useImportFirewallRules() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (request: ImportRulesRequest) => api.importFirewallRules(request),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['firewall', 'host'] });
+    },
+  });
+}
+
+export function useResetFirewall() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => api.resetFirewall(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['firewall', 'host'] });
+    },
+  });
+}
+
+// ====================
+// VPN Firewall Hooks
+// ====================
+
+export function useVPNFirewallRules() {
+  return useQuery({
+    queryKey: ['firewall', 'vpn', 'rules'],
+    queryFn: () => api.getVPNFirewallRules(),
+    refetchInterval: 30000,
+  });
+}
+
+export function useCreateVPNFirewallRule() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (request: VPNFirewallRuleRequest) => api.createVPNFirewallRule(request),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['firewall', 'vpn'] });
+    },
+  });
+}
+
+export function useUpdateVPNFirewallRule() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (vars: { id: string; request: VPNFirewallRuleRequest }) =>
+      api.updateVPNFirewallRule(vars.id, vars.request),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['firewall', 'vpn'] });
+    },
+  });
+}
+
+export function useDeleteVPNFirewallRule() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.deleteVPNFirewallRule(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['firewall', 'vpn'] });
+    },
+  });
+}
+
+export function useApplyVPNFirewallRules() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => api.applyVPNFirewallRules(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['firewall', 'vpn'] });
+    },
   });
 }

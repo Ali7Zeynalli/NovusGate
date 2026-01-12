@@ -11,6 +11,7 @@ import {
   LogOut,
   Activity,
   Shield,
+  Flame,
 } from 'lucide-react';
 import { useAppStore, useSidebarOpen } from '../store';
 import { useNetworks } from '../api/client';
@@ -26,6 +27,7 @@ const navigation: NavItem[] = [
   { name: 'Overview', href: '/dashboard', icon: <Activity className="w-5 h-5" /> },
   { name: 'Networks', href: '/networks', icon: <Network className="w-5 h-5" /> },
   { name: 'Nodes', href: '/nodes', icon: <Server className="w-5 h-5" /> },
+  { name: 'Firewall', href: '/firewall', icon: <Flame className="w-5 h-5" /> },
   { name: 'Fail2Ban', href: '/fail2ban', icon: <Shield className="w-5 h-5" /> },
   { name: 'Settings', href: '/settings', icon: <Settings className="w-5 h-5" /> },
 ];

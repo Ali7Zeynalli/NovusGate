@@ -189,3 +189,112 @@ export interface StatsOverview {
   total_tx: number;
   networks: NetworkStats[];
 }
+
+// Firewall types
+export interface FirewallRule {
+  number: number;
+  chain: string;
+  target: string;
+  protocol: string;
+  source: string;
+  destination: string;
+  port: string;
+  interface: string;
+  in_interface?: string;
+  out_interface?: string;
+  options?: string;
+  protected: boolean;
+}
+
+export interface ChainInfo {
+  name: string;
+  policy: string;
+  rules: FirewallRule[];
+}
+
+export interface FirewallStatus {
+  chains: ChainInfo[];
+  total_rules: number;
+  blocked_ips: number;
+  open_ports: number;
+}
+
+export interface OpenPortRequest {
+  port: number;
+  protocol: string;
+  source?: string;
+}
+
+export interface ClosePortRequest {
+  port: number;
+  protocol: string;
+  force?: boolean;
+}
+
+export interface BlockIPRequest {
+  ip: string;
+  ports?: string;
+}
+
+export interface AllowIPRequest {
+  ip: string;
+  ports?: string;
+}
+
+export interface DeleteRuleRequest {
+  chain: string;
+  line_number: number;
+  force?: boolean;
+}
+
+export interface ImportRulesRequest {
+  rules: string;
+}
+
+// VPN Firewall types
+export type VPNEndpointType = 'any' | 'network' | 'node' | 'custom';
+export type VPNFirewallAction = 'accept' | 'drop' | 'reject';
+export type VPNFirewallProtocol = 'tcp' | 'udp' | 'icmp' | 'all';
+
+export interface VPNFirewallRule {
+  id: string;
+  name: string;
+  description?: string;
+  source_type: VPNEndpointType;
+  source_network_id?: string;
+  source_node_id?: string;
+  source_ip?: string;
+  source_network_name?: string;
+  source_node_name?: string;
+  dest_type: VPNEndpointType;
+  dest_network_id?: string;
+  dest_node_id?: string;
+  dest_ip?: string;
+  dest_network_name?: string;
+  dest_node_name?: string;
+  protocol: VPNFirewallProtocol;
+  port?: string;
+  action: VPNFirewallAction;
+  priority: number;
+  enabled: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface VPNFirewallRuleRequest {
+  name: string;
+  description?: string;
+  source_type: VPNEndpointType;
+  source_network_id?: string;
+  source_node_id?: string;
+  source_ip?: string;
+  dest_type: VPNEndpointType;
+  dest_network_id?: string;
+  dest_node_id?: string;
+  dest_ip?: string;
+  protocol: VPNFirewallProtocol;
+  port?: string;
+  action: VPNFirewallAction;
+  priority: number;
+  enabled: boolean;
+}
