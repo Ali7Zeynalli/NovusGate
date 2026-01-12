@@ -214,7 +214,7 @@ export const ServerConfigModal: React.FC<ServerConfigModalProps> = ({
         );
 
       case 'linux':
-        const installCommand = `curl -sSfL ${window.location.origin}/api/v1/nodes/${nodeId}/install.sh | sudo bash`;
+        const installCommand = `curl -sSfLk ${window.location.origin}/api/v1/nodes/${nodeId}/install.sh | sudo bash`;
         return (
           <div className="space-y-4">
             <div className="p-4 bg-gray-900 border border-gray-800 rounded-lg">
@@ -231,6 +231,9 @@ export const ServerConfigModal: React.FC<ServerConfigModalProps> = ({
               <code className="text-xs text-green-400 break-all">
                 {installCommand}
               </code>
+              <p className="text-xs text-yellow-500 mt-2">
+                ⚠️ Run this from a machine that already has VPN access to the server
+              </p>
             </div>
 
             <div className="space-y-4">

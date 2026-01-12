@@ -387,12 +387,15 @@ Dashboard-da **Security → Fail2Ban** bölməsindən daxil olun.
   <img src="web/public/photo/web/4.png" alt="Web 4" width="45%">
   <img src="web/public/photo/web/5.png" alt="Web 5" width="45%">
   <img src="web/public/photo/web/6.png" alt="Web 6" width="45%">
+  <img src="web/public/photo/web/7.png" alt="Web 7" width="45%">
+  <img src="web/public/photo/web/8.png" alt="Web 8" width="45%">
 </div>
 
 ### Installer (Quraşdırıcı)
 <div style="display: flex; flex-wrap: wrap; gap: 10px;">
   <img src="web/public/photo/installer/0.png" alt="Installer 0" width="45%">
   <img src="web/public/photo/installer/1.png" alt="Installer 1" width="45%">
+  <img src="web/public/photo/installer/2.png" alt="Installer 2" width="45%">
 </div>
 
 ---

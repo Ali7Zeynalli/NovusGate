@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -283,6 +284,17 @@ func (s *Server) setupRoutes() {
 	api.HandleFunc("/system/fail2ban/status", s.handleFail2BanStatus).Methods("GET")
 	api.HandleFunc("/system/fail2ban/logs", s.handleFail2BanLogs).Methods("GET")
 	api.HandleFunc("/system/fail2ban/unban", s.handleFail2BanUnban).Methods("POST")
+	api.HandleFunc("/system/fail2ban/ban", s.handleFail2BanManualBan).Methods("POST")
+	api.HandleFunc("/system/fail2ban/jail/settings", s.handleFail2BanGetJailSettings).Methods("GET")
+	api.HandleFunc("/system/fail2ban/jail/settings", s.handleFail2BanUpdateJailSettings).Methods("PUT")
+	api.HandleFunc("/system/fail2ban/whitelist", s.handleFail2BanGetWhitelist).Methods("GET")
+	api.HandleFunc("/system/fail2ban/whitelist", s.handleFail2BanUpdateWhitelist).Methods("PUT")
+	api.HandleFunc("/system/fail2ban/permanent-bans", s.handleFail2BanGetPermanentBans).Methods("GET")
+	api.HandleFunc("/system/fail2ban/permanent-bans", s.handleFail2BanRemovePermanentBan).Methods("DELETE")
+	api.HandleFunc("/system/fail2ban/jail/control", s.handleFail2BanJailControl).Methods("POST")
+	api.HandleFunc("/system/fail2ban/reload", s.handleFail2BanReload).Methods("POST")
+	api.HandleFunc("/system/fail2ban/ping", s.handleFail2BanPing).Methods("GET")
+	api.HandleFunc("/system/fail2ban/ban-history", s.handleFail2BanHistory).Methods("GET")
 	
 	// All Networks Stats (for dashboard)
 	api.HandleFunc("/stats/overview", s.handleStatsOverview).Methods("GET")
@@ -1201,18 +1213,30 @@ func (s *Server) handleFail2BanStatus(w http.ResponseWriter, r *http.Request) {
 		
 		jailStatus, err := execHostCommand("fail2ban-client", "status", jail)
 		if err == nil {
-			// Parse banned IPs and stats
+			// Parse banned IPs and stats - handle different fail2ban output formats
 			for _, line := range strings.Split(jailStatus, "\n") {
 				line = strings.TrimSpace(line)
+				// Remove tree characters like |- and `-
+				line = strings.TrimPrefix(line, "|- ")
+				line = strings.TrimPrefix(line, "|  |- ")
+				line = strings.TrimPrefix(line, "|  `- ")
+				line = strings.TrimPrefix(line, "`- ")
+				
 				if strings.HasPrefix(line, "Currently banned:") {
-					var count int
-					fmt.Sscanf(line, "Currently banned: %d", &count)
-					jailInfo["banned_count"] = count
+					parts := strings.SplitN(line, ":", 2)
+					if len(parts) == 2 {
+						var count int
+						fmt.Sscanf(strings.TrimSpace(parts[1]), "%d", &count)
+						jailInfo["banned_count"] = count
+					}
 				}
 				if strings.HasPrefix(line, "Total banned:") {
-					var count int
-					fmt.Sscanf(line, "Total banned: %d", &count)
-					jailInfo["total_banned"] = count
+					parts := strings.SplitN(line, ":", 2)
+					if len(parts) == 2 {
+						var count int
+						fmt.Sscanf(strings.TrimSpace(parts[1]), "%d", &count)
+						jailInfo["total_banned"] = count
+					}
 				}
 				if strings.HasPrefix(line, "Banned IP list:") {
 					parts := strings.SplitN(line, ":", 2)
@@ -1226,14 +1250,20 @@ func (s *Server) handleFail2BanStatus(w http.ResponseWriter, r *http.Request) {
 					}
 				}
 				if strings.HasPrefix(line, "Currently failed:") {
-					var count int
-					fmt.Sscanf(line, "Currently failed: %d", &count)
-					jailInfo["failed_count"] = count
+					parts := strings.SplitN(line, ":", 2)
+					if len(parts) == 2 {
+						var count int
+						fmt.Sscanf(strings.TrimSpace(parts[1]), "%d", &count)
+						jailInfo["failed_count"] = count
+					}
 				}
 				if strings.HasPrefix(line, "Total failed:") {
-					var count int
-					fmt.Sscanf(line, "Total failed: %d", &count)
-					jailInfo["total_failed"] = count
+					parts := strings.SplitN(line, ":", 2)
+					if len(parts) == 2 {
+						var count int
+						fmt.Sscanf(strings.TrimSpace(parts[1]), "%d", &count)
+						jailInfo["total_failed"] = count
+					}
 				}
 			}
 		}
@@ -1655,5 +1685,480 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 		
 		// Log request
 		_ = duration // TODO: proper logging
+	})
+}
+
+// Fail2Ban Manual Ban - Ban an IP address manually
+func (s *Server) handleFail2BanManualBan(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Jail      string `json:"jail"`
+		IP        string `json:"ip"`
+		Permanent bool   `json:"permanent"` // If true, add to iptables directly for permanent ban
+	}
+	
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		errorResponse(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+	
+	if req.Jail == "" || req.IP == "" {
+		errorResponse(w, http.StatusBadRequest, "jail and ip are required")
+		return
+	}
+	
+	// Validate IP format
+	if net.ParseIP(req.IP) == nil {
+		errorResponse(w, http.StatusBadRequest, "invalid IP address")
+		return
+	}
+	
+	if req.Permanent {
+		// Add permanent ban via iptables
+		_, err := execHostCommand("iptables", "-I", "INPUT", "-s", req.IP, "-j", "DROP")
+		if err != nil {
+			errorResponse(w, http.StatusInternalServerError, "failed to add permanent ban: "+err.Error())
+			return
+		}
+		// Save iptables rules
+		execHostCommand("netfilter-persistent", "save")
+		
+		jsonResponse(w, http.StatusOK, map[string]string{
+			"status":  "success",
+			"message": fmt.Sprintf("IP %s permanently banned via iptables", req.IP),
+			"type":    "permanent",
+		})
+		return
+	}
+	
+	// Regular fail2ban ban
+	_, err := execHostCommand("fail2ban-client", "set", req.Jail, "banip", req.IP)
+	if err != nil {
+		errorResponse(w, http.StatusInternalServerError, "failed to ban IP: "+err.Error())
+		return
+	}
+	
+	jsonResponse(w, http.StatusOK, map[string]string{
+		"status":  "success",
+		"message": fmt.Sprintf("IP %s banned in jail %s", req.IP, req.Jail),
+		"type":    "temporary",
+	})
+}
+
+// Fail2Ban Get Jail Settings - Get current jail configuration
+func (s *Server) handleFail2BanGetJailSettings(w http.ResponseWriter, r *http.Request) {
+	jail := r.URL.Query().Get("jail")
+	if jail == "" {
+		jail = "sshd"
+	}
+	
+	settings := map[string]interface{}{
+		"jail": jail,
+	}
+	
+	// Get bantime
+	if out, err := execHostCommand("fail2ban-client", "get", jail, "bantime"); err == nil {
+		settings["bantime"] = strings.TrimSpace(out)
+	}
+	
+	// Get maxretry
+	if out, err := execHostCommand("fail2ban-client", "get", jail, "maxretry"); err == nil {
+		settings["maxretry"] = strings.TrimSpace(out)
+	}
+	
+	// Get findtime
+	if out, err := execHostCommand("fail2ban-client", "get", jail, "findtime"); err == nil {
+		settings["findtime"] = strings.TrimSpace(out)
+	}
+	
+	// Get ignoreip (whitelist)
+	if out, err := execHostCommand("fail2ban-client", "get", jail, "ignoreip"); err == nil {
+		settings["ignoreip"] = strings.TrimSpace(out)
+	}
+	
+	jsonResponse(w, http.StatusOK, settings)
+}
+
+// Fail2Ban Update Jail Settings - Update jail configuration
+func (s *Server) handleFail2BanUpdateJailSettings(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Jail     string `json:"jail"`
+		Bantime  string `json:"bantime"`   // e.g., "3600" (1 hour), "-1" (permanent)
+		Maxretry string `json:"maxretry"`  // e.g., "3"
+		Findtime string `json:"findtime"`  // e.g., "600" (10 minutes)
+	}
+	
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		errorResponse(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+	
+	if req.Jail == "" {
+		req.Jail = "sshd"
+	}
+	
+	updated := []string{}
+	errors := []string{}
+	
+	// Update bantime
+	if req.Bantime != "" {
+		if _, err := execHostCommand("fail2ban-client", "set", req.Jail, "bantime", req.Bantime); err != nil {
+			errors = append(errors, "bantime: "+err.Error())
+		} else {
+			updated = append(updated, "bantime")
+		}
+	}
+	
+	// Update maxretry
+	if req.Maxretry != "" {
+		if _, err := execHostCommand("fail2ban-client", "set", req.Jail, "maxretry", req.Maxretry); err != nil {
+			errors = append(errors, "maxretry: "+err.Error())
+		} else {
+			updated = append(updated, "maxretry")
+		}
+	}
+	
+	// Update findtime
+	if req.Findtime != "" {
+		if _, err := execHostCommand("fail2ban-client", "set", req.Jail, "findtime", req.Findtime); err != nil {
+			errors = append(errors, "findtime: "+err.Error())
+		} else {
+			updated = append(updated, "findtime")
+		}
+	}
+	
+	if len(errors) > 0 {
+		jsonResponse(w, http.StatusPartialContent, map[string]interface{}{
+			"status":  "partial",
+			"updated": updated,
+			"errors":  errors,
+		})
+		return
+	}
+	
+	jsonResponse(w, http.StatusOK, map[string]interface{}{
+		"status":  "success",
+		"updated": updated,
+	})
+}
+
+// Fail2Ban Get Whitelist - Get whitelisted IPs
+func (s *Server) handleFail2BanGetWhitelist(w http.ResponseWriter, r *http.Request) {
+	jail := r.URL.Query().Get("jail")
+	if jail == "" {
+		jail = "sshd"
+	}
+	
+	out, err := execHostCommand("fail2ban-client", "get", jail, "ignoreip")
+	if err != nil {
+		errorResponse(w, http.StatusInternalServerError, "failed to get whitelist: "+err.Error())
+		return
+	}
+	
+	// Parse the output - format is usually "127.0.0.1/8 ::1 10.0.0.0/8"
+	ips := strings.Fields(strings.TrimSpace(out))
+	
+	jsonResponse(w, http.StatusOK, map[string]interface{}{
+		"jail":      jail,
+		"whitelist": ips,
+	})
+}
+
+// Fail2Ban Update Whitelist - Add or remove IPs from whitelist
+func (s *Server) handleFail2BanUpdateWhitelist(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Jail   string `json:"jail"`
+		Action string `json:"action"` // "add" or "remove"
+		IP     string `json:"ip"`
+	}
+	
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		errorResponse(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+	
+	if req.Jail == "" {
+		req.Jail = "sshd"
+	}
+	
+	if req.Action == "" || req.IP == "" {
+		errorResponse(w, http.StatusBadRequest, "action and ip are required")
+		return
+	}
+	
+	// Validate IP/CIDR format
+	if net.ParseIP(req.IP) == nil {
+		// Try parsing as CIDR
+		if _, _, err := net.ParseCIDR(req.IP); err != nil {
+			errorResponse(w, http.StatusBadRequest, "invalid IP address or CIDR")
+			return
+		}
+	}
+	
+	var cmd string
+	switch req.Action {
+	case "add":
+		cmd = "addignoreip"
+	case "remove":
+		cmd = "delignoreip"
+	default:
+		errorResponse(w, http.StatusBadRequest, "action must be 'add' or 'remove'")
+		return
+	}
+	
+	_, err := execHostCommand("fail2ban-client", "set", req.Jail, cmd, req.IP)
+	if err != nil {
+		errorResponse(w, http.StatusInternalServerError, "failed to update whitelist: "+err.Error())
+		return
+	}
+	
+	jsonResponse(w, http.StatusOK, map[string]string{
+		"status":  "success",
+		"message": fmt.Sprintf("IP %s %sed in jail %s whitelist", req.IP, req.Action, req.Jail),
+	})
+}
+
+// Fail2Ban Get Permanent Bans - Get list of permanently banned IPs via iptables
+func (s *Server) handleFail2BanGetPermanentBans(w http.ResponseWriter, r *http.Request) {
+	// Get iptables rules that DROP traffic
+	out, err := execHostCommand("iptables", "-L", "INPUT", "-n", "--line-numbers")
+	if err != nil {
+		errorResponse(w, http.StatusInternalServerError, "failed to get iptables rules: "+err.Error())
+		return
+	}
+	
+	var bannedIPs []map[string]interface{}
+	lines := strings.Split(out, "\n")
+	
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		// Look for DROP rules with source IP
+		// Format: "1    DROP       all  --  192.168.1.100    0.0.0.0/0"
+		if strings.Contains(line, "DROP") && !strings.HasPrefix(line, "Chain") && !strings.HasPrefix(line, "num") {
+			fields := strings.Fields(line)
+			if len(fields) >= 5 {
+				lineNum := fields[0]
+				sourceIP := fields[4]
+				// Skip 0.0.0.0/0 (not a specific ban)
+				if sourceIP != "0.0.0.0/0" && sourceIP != "anywhere" {
+					bannedIPs = append(bannedIPs, map[string]interface{}{
+						"line_number": lineNum,
+						"ip":          sourceIP,
+						"target":      "DROP",
+						"protocol":    fields[2],
+					})
+				}
+			}
+		}
+	}
+	
+	jsonResponse(w, http.StatusOK, map[string]interface{}{
+		"permanent_bans": bannedIPs,
+		"count":          len(bannedIPs),
+	})
+}
+
+// Fail2Ban Remove Permanent Ban - Remove a permanently banned IP from iptables
+func (s *Server) handleFail2BanRemovePermanentBan(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		IP string `json:"ip"`
+	}
+	
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		errorResponse(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+	
+	if req.IP == "" {
+		errorResponse(w, http.StatusBadRequest, "ip is required")
+		return
+	}
+	
+	// Validate IP format
+	if net.ParseIP(req.IP) == nil {
+		// Try parsing as CIDR
+		if _, _, err := net.ParseCIDR(req.IP); err != nil {
+			errorResponse(w, http.StatusBadRequest, "invalid IP address")
+			return
+		}
+	}
+	
+	// Remove the DROP rule for this IP
+	_, err := execHostCommand("iptables", "-D", "INPUT", "-s", req.IP, "-j", "DROP")
+	if err != nil {
+		errorResponse(w, http.StatusInternalServerError, "failed to remove permanent ban: "+err.Error())
+		return
+	}
+	
+	// Save iptables rules
+	execHostCommand("netfilter-persistent", "save")
+	
+	jsonResponse(w, http.StatusOK, map[string]string{
+		"status":  "success",
+		"message": fmt.Sprintf("Permanent ban removed for IP %s", req.IP),
+	})
+}
+
+// Fail2Ban Jail Control - Start/Stop a jail
+func (s *Server) handleFail2BanJailControl(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Jail   string `json:"jail"`
+		Action string `json:"action"` // "start" or "stop"
+	}
+	
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		errorResponse(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+	
+	if req.Jail == "" || req.Action == "" {
+		errorResponse(w, http.StatusBadRequest, "jail and action are required")
+		return
+	}
+	
+	var cmd string
+	switch req.Action {
+	case "start":
+		cmd = "start"
+	case "stop":
+		cmd = "stop"
+	default:
+		errorResponse(w, http.StatusBadRequest, "action must be 'start' or 'stop'")
+		return
+	}
+	
+	_, err := execHostCommand("fail2ban-client", cmd, req.Jail)
+	if err != nil {
+		errorResponse(w, http.StatusInternalServerError, fmt.Sprintf("failed to %s jail: %s", cmd, err.Error()))
+		return
+	}
+	
+	jsonResponse(w, http.StatusOK, map[string]string{
+		"status":  "success",
+		"message": fmt.Sprintf("Jail %s %sed successfully", req.Jail, cmd),
+	})
+}
+
+// Fail2Ban Reload - Reload fail2ban without losing bans
+func (s *Server) handleFail2BanReload(w http.ResponseWriter, r *http.Request) {
+	jail := r.URL.Query().Get("jail")
+	
+	var out string
+	var err error
+	
+	if jail != "" {
+		// Reload specific jail
+		out, err = execHostCommand("fail2ban-client", "reload", jail)
+	} else {
+		// Reload all
+		out, err = execHostCommand("fail2ban-client", "reload")
+	}
+	
+	if err != nil {
+		errorResponse(w, http.StatusInternalServerError, "failed to reload: "+err.Error())
+		return
+	}
+	
+	jsonResponse(w, http.StatusOK, map[string]string{
+		"status":  "success",
+		"message": "Fail2Ban reloaded successfully",
+		"output":  strings.TrimSpace(out),
+	})
+}
+
+// Fail2Ban Ping - Check if fail2ban is responding
+func (s *Server) handleFail2BanPing(w http.ResponseWriter, r *http.Request) {
+	out, err := execHostCommand("fail2ban-client", "ping")
+	if err != nil {
+		jsonResponse(w, http.StatusOK, map[string]interface{}{
+			"alive":   false,
+			"error":   err.Error(),
+			"message": "Fail2Ban is not responding",
+		})
+		return
+	}
+	
+	// Expected output: "Server replied: pong"
+	alive := strings.Contains(out, "pong")
+	
+	jsonResponse(w, http.StatusOK, map[string]interface{}{
+		"alive":   alive,
+		"message": strings.TrimSpace(out),
+	})
+}
+
+// Fail2Ban History - Get ban history from logs
+func (s *Server) handleFail2BanHistory(w http.ResponseWriter, r *http.Request) {
+	jail := r.URL.Query().Get("jail")
+	limitStr := r.URL.Query().Get("limit")
+	limit := 100
+	if limitStr != "" {
+		if l, err := strconv.Atoi(limitStr); err == nil && l > 0 {
+			limit = l
+		}
+	}
+	
+	// Get ban/unban history from fail2ban log
+	var grepPattern string
+	if jail != "" {
+		grepPattern = fmt.Sprintf("\\[%s\\].*\\(Ban\\|Unban\\)", jail)
+	} else {
+		grepPattern = "\\(Ban\\|Unban\\)"
+	}
+	
+	out, _ := execHostCommand("sh", "-c", fmt.Sprintf("grep -E '%s' /var/log/fail2ban.log 2>/dev/null | tail -n %d", grepPattern, limit))
+	
+	var history []map[string]string
+	lines := strings.Split(out, "\n")
+	
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		
+		entry := map[string]string{
+			"raw": line,
+		}
+		
+		// Parse timestamp (format: 2024-01-15 10:30:45,123)
+		if len(line) > 23 {
+			entry["timestamp"] = line[:23]
+		}
+		
+		// Determine action
+		if strings.Contains(line, "Ban") {
+			entry["action"] = "ban"
+		} else if strings.Contains(line, "Unban") {
+			entry["action"] = "unban"
+		}
+		
+		// Extract jail name [jailname]
+		if start := strings.Index(line, "["); start != -1 {
+			if end := strings.Index(line[start:], "]"); end != -1 {
+				entry["jail"] = line[start+1 : start+end]
+			}
+		}
+		
+		// Extract IP (last word usually)
+		parts := strings.Fields(line)
+		if len(parts) > 0 {
+			lastPart := parts[len(parts)-1]
+			if net.ParseIP(lastPart) != nil {
+				entry["ip"] = lastPart
+			}
+		}
+		
+		history = append(history, entry)
+	}
+	
+	// Reverse to show newest first
+	for i, j := 0, len(history)-1; i < j; i, j = i+1, j-1 {
+		history[i], history[j] = history[j], history[i]
+	}
+	
+	jsonResponse(w, http.StatusOK, map[string]interface{}{
+		"history": history,
+		"count":   len(history),
+		"jail":    jail,
 	})
 }

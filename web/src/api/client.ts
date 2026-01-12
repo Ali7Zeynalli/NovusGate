@@ -150,6 +150,72 @@ class ApiClient {
     await this.client.post('/system/fail2ban/unban', { jail, ip });
   }
 
+  // Fail2Ban - Manual Ban
+  async banIP(jail: string, ip: string, permanent: boolean = false): Promise<any> {
+    const { data } = await this.client.post('/system/fail2ban/ban', { jail, ip, permanent });
+    return data;
+  }
+
+  // Fail2Ban - Jail Settings
+  async getJailSettings(jail: string = 'sshd'): Promise<any> {
+    const { data } = await this.client.get(`/system/fail2ban/jail/settings?jail=${jail}`);
+    return data;
+  }
+
+  async updateJailSettings(jail: string, settings: { bantime?: string; maxretry?: string; findtime?: string }): Promise<any> {
+    const { data } = await this.client.put('/system/fail2ban/jail/settings', { jail, ...settings });
+    return data;
+  }
+
+  // Fail2Ban - Whitelist
+  async getWhitelist(jail: string = 'sshd'): Promise<any> {
+    const { data } = await this.client.get(`/system/fail2ban/whitelist?jail=${jail}`);
+    return data;
+  }
+
+  async updateWhitelist(jail: string, action: 'add' | 'remove', ip: string): Promise<any> {
+    const { data } = await this.client.put('/system/fail2ban/whitelist', { jail, action, ip });
+    return data;
+  }
+
+  // Fail2Ban - Permanent Bans (iptables)
+  async getPermanentBans(): Promise<any> {
+    const { data } = await this.client.get('/system/fail2ban/permanent-bans');
+    return data;
+  }
+
+  async removePermanentBan(ip: string): Promise<any> {
+    const { data } = await this.client.delete('/system/fail2ban/permanent-bans', { data: { ip } });
+    return data;
+  }
+
+  // Fail2Ban - Jail Control
+  async controlJail(jail: string, action: 'start' | 'stop'): Promise<any> {
+    const { data } = await this.client.post('/system/fail2ban/jail/control', { jail, action });
+    return data;
+  }
+
+  // Fail2Ban - Reload
+  async reloadFail2Ban(jail?: string): Promise<any> {
+    const url = jail ? `/system/fail2ban/reload?jail=${jail}` : '/system/fail2ban/reload';
+    const { data } = await this.client.post(url);
+    return data;
+  }
+
+  // Fail2Ban - Ping (health check)
+  async pingFail2Ban(): Promise<any> {
+    const { data } = await this.client.get('/system/fail2ban/ping');
+    return data;
+  }
+
+  // Fail2Ban - Ban History
+  async getBanHistory(jail?: string, limit: number = 100): Promise<any> {
+    let url = `/system/fail2ban/ban-history?limit=${limit}`;
+    if (jail) url += `&jail=${jail}`;
+    const { data } = await this.client.get(url);
+    return data;
+  }
+
   // Stats Overview (all networks)
   async getStatsOverview(): Promise<StatsOverview> {
     const { data } = await this.client.get('/stats/overview');
