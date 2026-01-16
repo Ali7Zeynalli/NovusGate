@@ -1070,6 +1070,7 @@
             <div class="server-name">${s.name}</div>
             <div class="server-host">${s.host}</div>
           </div>
+          <button class="btn-mini danger" onclick="event.stopPropagation(); deleteServerById('${s.id}')" title="Delete Server" style="flex-shrink: 0;">🗑️</button>
         </div>
       `).join('');
     }
@@ -1111,7 +1112,9 @@
       let containers = [];
       try {
         const res = await fetch(`/api/servers/${selectedServer.id}/docker`);
-        containers = await res.json();
+        const data = await res.json();
+        // Filter out invalid containers (no name or empty)
+        containers = Array.isArray(data) ? data.filter(c => c && c.name) : [];
       } catch {}
       
       const content = document.getElementById('mainContent');
@@ -1226,15 +1229,15 @@
                 ${containers.map(c => `
                   <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px; background: var(--bg); border-radius: 6px; margin-bottom: 6px;">
                     <div style="min-width: 0; flex: 1;">
-                      <div style="font-size: 0.85rem; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${c.name.replace('NovusGate-', '')}</div>
-                      <div style="font-size: 0.7rem; color: ${c.status?.includes('Up') ? 'var(--success)' : 'var(--danger)'};">${c.status}</div>
+                      <div style="font-size: 0.85rem; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${(c.name || 'unknown').replace('NovusGate-', '')}</div>
+                      <div style="font-size: 0.7rem; color: ${c.status?.includes('Up') ? 'var(--success)' : 'var(--danger)'};">${c.status || 'unknown'}</div>
                     </div>
                     <div style="display: flex; gap: 3px; flex-shrink: 0;">
-                      <button class="btn-mini success" onclick="dockerAction('${c.name}', 'start')" title="Start">▶</button>
-                      <button class="btn-mini warning" onclick="dockerAction('${c.name}', 'stop')" title="Stop">⏹</button>
-                      <button class="btn-mini" onclick="dockerAction('${c.name}', 'restart')" title="Restart" style="background: var(--accent); color: white;">�</button>
-                      <button class="btn-mini" onclick="dockerAction('${c.name}', 'logs')" title="Logs">📋</button>
-                      <button class="btn-mini danger" onclick="dockerAction('${c.name}', 'remove')" title="Remove">🗑️</button>
+                      <button class="btn-mini success" onclick="dockerAction('${c.name || ''}', 'start')" title="Start">▶</button>
+                      <button class="btn-mini warning" onclick="dockerAction('${c.name || ''}', 'stop')" title="Stop">⏹</button>
+                      <button class="btn-mini" onclick="dockerAction('${c.name || ''}', 'restart')" title="Restart" style="background: var(--accent); color: white;">🔄</button>
+                      <button class="btn-mini" onclick="dockerAction('${c.name || ''}', 'logs')" title="Logs">📋</button>
+                      <button class="btn-mini danger" onclick="dockerAction('${c.name || ''}', 'remove')" title="Remove">🗑️</button>
                     </div>
                   </div>
                 `).join('')}
@@ -1666,6 +1669,19 @@
       document.getElementById('mainContent').innerHTML = '<div class="empty-state"><div class="empty-state-icon">🖥️</div><h2>No Server Selected</h2></div>';
       document.getElementById('serverTitle').textContent = 'Select Server';
       document.getElementById('refreshBtn').style.display = 'none';
+    }
+    
+    async function deleteServerById(id) {
+      if (!confirm('Bu server silinəcək. Davam edək?')) return;
+      
+      await fetch(`/api/servers/${id}`, { method: 'DELETE' });
+      if (selectedServer && selectedServer.id === id) {
+        selectedServer = null;
+        document.getElementById('mainContent').innerHTML = '<div class="empty-state"><div class="empty-state-icon">🖥️</div><h2>No Server Selected</h2></div>';
+        document.getElementById('serverTitle').textContent = 'Select Server';
+        document.getElementById('refreshBtn').style.display = 'none';
+      }
+      await loadServers();
     }
     
     // Modal functions
