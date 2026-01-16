@@ -1,0 +1,52 @@
+NovusGate - Self-hosted VPN Solution
+Copyright 2025 Ali Zeynalli
+
+This product includes software developed by Ali Zeynalli.
+
+================================================================================
+
+ORIGINAL AUTHOR AND MAINTAINER
+==============================
+Ali Zeynalli
+Email: Ali.Z.Zeynalli@gmail.com
+GitHub: https://github.com/Ali7Zeynalli
+LinkedIn: https://linkedin.com/in/ali7zeynalli
+
+================================================================================
+
+PROJECT INFORMATION
+===================
+NovusGate is a modern, fully self-hosted VPN control plane built on top of the 
+WireGuard® protocol. It allows you to securely connect servers, cloud instances, 
+and personal devices using a clean Hub-and-Spoke architecture, all managed from 
+a single web dashboard.
+
+Repository: https://github.com/Ali7Zeynalli/NovusGate
+
+================================================================================
+
+ATTRIBUTION REQUIREMENTS
+========================
+When redistributing this software or derivative works, you must:
+
+1. Retain this NOTICE file in its entirety
+2. Include the original LICENSE file
+3. Clearly indicate any modifications made to the original work
+4. Give appropriate credit to the original author
+
+================================================================================
+
+THIRD-PARTY TRADEMARKS
+======================
+WireGuard® is a registered trademark of Jason A. Donenfeld.
+NovusGate is not affiliated with or endorsed by WireGuard or its creators.
+
+================================================================================
+
+THIRD-PARTY COMPONENTS
+======================
+This software may include third-party open source components, each with 
+their own licenses. Please refer to the individual component licenses 
+for more information.
+
+================================================================================

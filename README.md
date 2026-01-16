@@ -1,7 +1,7 @@
 # NovusGate
 
 [![GitHub stars](https://img.shields.io/github/stars/Ali7Zeynalli/NovusGate?style=social)](https://github.com/Ali7Zeynalli/NovusGate/stargazers)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![WireGuard](https://img.shields.io/badge/Protocol-WireGuard-88171A.svg)](https://www.wireguard.com/)
 [![VPN Type](https://img.shields.io/badge/VPN%20Type-Remote%20Access-blue.svg)](#-vpn-type)
 
@@ -587,7 +587,22 @@ If you cannot perform the steps shown in this guide yourself or need full enterp
 
 ## 📄 License
 
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **Apache License 2.0** - see the [LICENSE](LICENSE) file for details.
+
+**© 2025 Ali Zeynalli**
+
+The Apache 2.0 License allows you to:
+- ✅ Use the software for any purpose (including commercial)
+- ✅ Modify and distribute the software
+- ✅ Use patent claims of contributors
+
+While requiring you to:
+- 📋 Include the original copyright notice
+- 📋 Include the LICENSE and NOTICE files
+- 📋 State significant changes made to the software
+- � Provide attribution to the original author
+
+> 📜 See [NOTICE](NOTICE) file for attribution requirements.
 
 ---
 

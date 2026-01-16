@@ -1,7 +1,7 @@
 # NovusGate
 
 [![GitHub stars](https://img.shields.io/github/stars/Ali7Zeynalli/NovusGate?style=social)](https://github.com/Ali7Zeynalli/NovusGate/stargazers)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Lisenziya](https://img.shields.io/badge/Lisenziya-Apache_2.0-blue.svg)](LICENSE)
 [![WireGuard](https://img.shields.io/badge/Protocol-WireGuard-88171A.svg)](https://www.wireguard.com/)
 [![VPN Type](https://img.shields.io/badge/VPN%20Tipi-Uzaqdan%20Giri%C5%9F-blue.svg)](#-vpn-tipi)
 
@@ -586,7 +586,22 @@ Açıq-qaynaq (Open-source) icma ilə yaşayır.
 
 ## 📄 Lisenziya
 
-Bu layihə **MIT Lisenziyası** altında lisenziyalanıb - ətraflı məlumat üçün [LICENSE](LICENSE) faylına baxın.
+Bu layihə **Apache License 2.0** altında lisenziyalanıb - ətraflı məlumat üçün [LICENSE](LICENSE) faylına baxın.
+
+**© 2025 Əli Zeynallı**
+
+Apache 2.0 Lisenziyası sizə imkan verir:
+- ✅ Proqramı istənilən məqsəd üçün istifadə etmək (kommersiya daxil)
+- ✅ Proqramı dəyişdirmək və paylamaq
+- ✅ Töhfə edənlərin patent iddialarından istifadə etmək
+
+Sizdən tələb olunur:
+- 📋 Orijinal müəllif hüququ qeydini saxlamaq
+- 📋 LICENSE və NOTICE fayllarını daxil etmək
+- 📋 Proqrama edilən əhəmiyyətli dəyişiklikləri qeyd etmək
+- 📋 Orijinal müəllifə istinad vermək
+
+> 📜 Attribution tələbləri üçün [NOTICE](NOTICE) faylına baxın.
 
 ---
 
