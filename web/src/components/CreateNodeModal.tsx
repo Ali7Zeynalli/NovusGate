@@ -10,23 +10,20 @@ interface CreateNodeModalProps {
   isLoading?: boolean
 }
 
-export const CreateNodeModal: React.FC<CreateNodeModalProps> = ({
-  isOpen,
-  onClose,
-  onSubmit,
-  isLoading,
-}) => {
-  const [name, setName] = useState('')
-  const [expiryType, setExpiryType] = useState('forever')
-  const [customDate, setCustomDate] = useState('')
+const expiryOptions = [
+  { value: 'forever', label: 'Forever (No limit)' },
+  { value: '1h', label: '1 Hour' },
+  { value: '1d', label: '1 Day' },
+  { value: '1w', label: '1 Week' },
+  { value: 'custom', label: 'Custom Date' },
+]
 
-  const expiryOptions = [
-    { value: 'forever', label: 'Forever (No limit)' },
-    { value: '1h', label: '1 Hour' },
-    { value: '1d', label: '1 Day' },
-    { value: '1w', label: '1 Week' },
-    { value: 'custom', label: 'Custom Date' },
-  ]
+type ExpiryValueProp = (typeof expiryOptions)[number]['value']
+
+export const CreateNodeModal = ({ isOpen, onClose, onSubmit, isLoading }: CreateNodeModalProps) => {
+  const [name, setName] = useState('')
+  const [expiryType, setExpiryType] = useState<ExpiryValueProp>('forever')
+  const [customDate, setCustomDate] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -59,12 +56,16 @@ export const CreateNodeModal: React.FC<CreateNodeModalProps> = ({
         />
 
         <div className="space-y-1">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label
+            htmlFor="expiry-type"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
             Expiration (Access Duration)
           </label>
           <div className="flex gap-2">
             <div className="flex-1">
               <Select
+                id="expiry-type"
                 options={expiryOptions}
                 value={expiryType}
                 onChange={(e) => setExpiryType(e.target.value)}

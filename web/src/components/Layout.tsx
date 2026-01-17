@@ -33,7 +33,7 @@ const navigation: NavItem[] = [
   { name: 'Settings', href: '/settings', icon: <Settings className="w-5 h-5" /> },
 ]
 
-export const Layout: React.FC = () => {
+export const Layout = () => {
   const location = useLocation()
   const sidebarOpen = useSidebarOpen()
   const { toggleSidebar, currentNetworkId, setCurrentNetworkId } = useAppStore()
@@ -128,6 +128,7 @@ export const Layout: React.FC = () => {
         <div className="p-4 border-t dark:border-gray-700">
           <Branding className="mb-4" />
           <button
+            type="button"
             onClick={() => {
               if (confirm('Are you sure you want to log out?')) {
                 localStorage.removeItem('auth_token')
@@ -153,7 +154,11 @@ export const Layout: React.FC = () => {
         {/* Top bar */}
         <header className="sticky top-0 z-30 h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between h-full px-4">
-            <button onClick={toggleSidebar} className="lg:hidden text-gray-500 hover:text-gray-700">
+            <button
+              type="button"
+              onClick={toggleSidebar}
+              className="lg:hidden text-gray-500 hover:text-gray-700"
+            >
               <Menu className="w-6 h-6" />
             </button>
 

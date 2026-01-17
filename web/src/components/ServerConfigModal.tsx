@@ -1,6 +1,6 @@
 import { Box, Check, Copy, Download, Monitor, QrCode as QrIcon, Terminal } from 'lucide-react'
 import type React from 'react'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { api } from '../api/client'
 import { Button, Modal } from './ui'
 
@@ -45,14 +45,7 @@ export const ServerConfigModal: React.FC<ServerConfigModalProps> = ({
   const [error, setError] = useState('')
   const [copied, setCopied] = useState(false)
 
-  useEffect(() => {
-    if (isOpen && nodeId) {
-      loadConfig()
-      setActiveTab('general')
-    }
-  }, [isOpen, nodeId, loadConfig])
-
-  const loadConfig = async () => {
+  const loadConfig = useCallback(async () => {
     setLoading(true)
     setError('')
     try {
@@ -67,12 +60,19 @@ export const ServerConfigModal: React.FC<ServerConfigModalProps> = ({
         setQrCodeUrl(reader.result as string)
       }
       reader.readAsDataURL(blob)
-    } catch (err: any) {
+    } catch (err) {
       setError(err.message || 'Error loading configuration')
     } finally {
       setLoading(false)
     }
-  }
+  }, [nodeId])
+
+  useEffect(() => {
+    if (isOpen && nodeId) {
+      loadConfig()
+      setActiveTab('general')
+    }
+  }, [isOpen, nodeId, loadConfig])
 
   const handleDownload = () => {
     const element = document.createElement('a')
@@ -125,6 +125,7 @@ export const ServerConfigModal: React.FC<ServerConfigModalProps> = ({
                   WireGuard Config
                 </label>
                 <button
+                  type="button"
                   onClick={() => copyToClipboard(config)}
                   className="text-xs flex items-center gap-1 text-primary-600 hover:text-primary-700"
                 >
@@ -244,6 +245,7 @@ export const ServerConfigModal: React.FC<ServerConfigModalProps> = ({
               <div className="flex justify-between items-center mb-2">
                 <h4 className="text-sm font-semibold text-gray-400">Easy One-Line Install</h4>
                 <button
+                  type="button"
                   onClick={() => copyToClipboard(installCommand)}
                   className="text-xs flex items-center gap-1 text-primary-400 hover:text-primary-300"
                 >
@@ -285,6 +287,7 @@ export const ServerConfigModal: React.FC<ServerConfigModalProps> = ({
             </p>
             <div className="p-4 bg-gray-900 text-gray-300 rounded-lg font-mono text-sm overflow-x-auto relative group">
               <button
+                type="button"
                 onClick={() =>
                   copyToClipboard(`docker run -d \\
   --name=wireguard-client \\

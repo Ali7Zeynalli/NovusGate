@@ -1,6 +1,6 @@
 import { Clock, Power, PowerOff } from 'lucide-react'
 import type React from 'react'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { Node } from '../types'
 import { Button, Input, Modal, Select } from './ui'
 
@@ -24,13 +24,13 @@ const getMinDateTime = () => {
   return now.toISOString().slice(0, 16)
 }
 
-export const EditNodeModal: React.FC<EditNodeModalProps> = ({
+export const EditNodeModal = ({
   isOpen,
   onClose,
   node,
   onSubmit,
   isLoading,
-}) => {
+}: EditNodeModalProps) => {
   const [name, setName] = useState('')
   const [expiryType, setExpiryType] = useState('keep')
   const [customDate, setCustomDate] = useState('')
@@ -60,14 +60,17 @@ export const EditNodeModal: React.FC<EditNodeModalProps> = ({
     }
   }, [node, isOpen])
 
-  const expiryOptions = [
-    { value: 'keep', label: node?.expires_at ? 'Keep Current' : 'Forever (No limit)' },
-    { value: 'forever', label: 'Remove Limit (Forever)' },
-    { value: '1h', label: 'Extend +1 Hour' },
-    { value: '1d', label: 'Extend +1 Day' },
-    { value: '1w', label: 'Extend +1 Week' },
-    { value: 'custom', label: 'Set Custom Date' },
-  ]
+  const expiryOptions = useMemo(
+    () => [
+      { value: 'keep', label: node?.expires_at ? 'Keep Current' : 'Forever (No limit)' },
+      { value: 'forever', label: 'Remove Limit (Forever)' },
+      { value: '1h', label: 'Extend +1 Hour' },
+      { value: '1d', label: 'Extend +1 Day' },
+      { value: '1w', label: 'Extend +1 Week' },
+      { value: 'custom', label: 'Set Custom Date' },
+    ],
+    [node?.expires_at]
+  )
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
