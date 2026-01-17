@@ -127,7 +127,7 @@ export const EditNodeModal: React.FC<EditNodeModalProps> = ({
   }
 
   const isExpired = node?.status === 'expired'
-  const canReactivate = isExpired || node?.status === 'offline'
+  const _canReactivate = isExpired || node?.status === 'offline'
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={`Edit: ${node?.name || 'Node'}`}>

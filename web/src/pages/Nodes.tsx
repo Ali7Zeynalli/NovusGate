@@ -8,8 +8,6 @@ import {
   Download,
   Laptop,
   Pencil,
-  Plus,
-  Search,
   Server,
   ShieldAlert,
   Trash2,
@@ -38,7 +36,7 @@ const formatBytes = (bytes: number = 0) => {
   const k = 1024
   const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
   const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return parseFloat((bytes / k ** i).toFixed(2)) + ' ' + sizes[i]
+  return `${parseFloat((bytes / k ** i).toFixed(2))} ${sizes[i]}`
 }
 
 export const NodesPage: React.FC = () => {

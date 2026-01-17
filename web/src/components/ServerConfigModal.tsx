@@ -1,17 +1,7 @@
-import {
-  Box,
-  Check,
-  Copy,
-  Download,
-  Monitor,
-  QrCode as QrIcon,
-  Smartphone,
-  Terminal,
-  X,
-} from 'lucide-react'
+import { Box, Check, Copy, Download, Monitor, QrCode as QrIcon, Terminal } from 'lucide-react'
 import type React from 'react'
 import { useEffect, useState } from 'react'
-import { api, getAuthHeaders } from '../api/client'
+import { api } from '../api/client'
 import { Button, Modal } from './ui'
 
 interface ServerConfigModalProps {
@@ -60,7 +50,7 @@ export const ServerConfigModal: React.FC<ServerConfigModalProps> = ({
       loadConfig()
       setActiveTab('general')
     }
-  }, [isOpen, nodeId])
+  }, [isOpen, nodeId, loadConfig])
 
   const loadConfig = async () => {
     setLoading(true)

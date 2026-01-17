@@ -1,4 +1,3 @@
-import { clsx } from 'clsx'
 import { format } from 'date-fns'
 import { Activity, Network, Plus, Search, Shield, Trash2 } from 'lucide-react'
 import type React from 'react'

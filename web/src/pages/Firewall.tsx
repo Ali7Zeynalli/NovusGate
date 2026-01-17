@@ -1,4 +1,3 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   AlertTriangle,
   ArrowRight,
@@ -15,10 +14,8 @@ import {
   RotateCcw,
   Server,
   Shield,
-  ShieldOff,
   Trash2,
   Unlock,
-  Upload,
   XCircle,
 } from 'lucide-react'
 import React, { useState } from 'react'
@@ -166,7 +163,7 @@ export const Firewall: React.FC = () => {
     e.preventDefault()
     try {
       await openPortMutation.mutateAsync({
-        port: parseInt(openPortForm.port),
+        port: parseInt(openPortForm.port, 10),
         protocol: openPortForm.protocol,
         source: openPortForm.source || undefined,
       })
@@ -1563,7 +1560,7 @@ const VPNRuleModal: React.FC<VPNRuleModalProps> = ({
               min="1"
               max="1000"
               value={form.priority}
-              onChange={(e) => setForm({ ...form, priority: parseInt(e.target.value) || 100 })}
+              onChange={(e) => setForm({ ...form, priority: parseInt(e.target.value, 10) || 100 })}
               className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
             />
           </div>

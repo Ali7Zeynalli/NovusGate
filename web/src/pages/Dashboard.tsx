@@ -1,5 +1,4 @@
 import {
-  Activity,
   AlertTriangle,
   ArrowDownToLine,
   ArrowUpFromLine,
@@ -18,7 +17,7 @@ import type React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useStatsOverview, useSystemInfo } from '../api/client'
 import { PageHeader } from '../components/Layout'
-import { Badge, Button, Card, EmptyState, StatusIndicator } from '../components/ui'
+import { Badge, Button, Card, EmptyState } from '../components/ui'
 
 // Format bytes to human readable
 const formatBytes = (bytes: number = 0): string => {
@@ -26,7 +25,7 @@ const formatBytes = (bytes: number = 0): string => {
   const k = 1024
   const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
   const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return parseFloat((bytes / k ** i).toFixed(2)) + ' ' + sizes[i]
+  return `${parseFloat((bytes / k ** i).toFixed(2))} ${sizes[i]}`
 }
 
 // Format uptime
