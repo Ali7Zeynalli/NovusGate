@@ -1,66 +1,64 @@
-import React, { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { PageHeader } from '../components/Layout';
-import { useUsers, useUpdatePassword, useCreateUser, useDeleteUser } from '../api/client';
-import { Shield, UserPlus, Trash2, Key, User } from 'lucide-react';
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { Key, Shield, Trash2, User, UserPlus } from 'lucide-react'
+import type React from 'react'
+import { useState } from 'react'
+import { useCreateUser, useDeleteUser, useUpdatePassword, useUsers } from '../api/client'
+import { PageHeader } from '../components/Layout'
 
 export const SettingsPage: React.FC = () => {
   return (
     <div className="space-y-8">
-      <PageHeader
-        title="Settings"
-        description="Manage your account profile and system users."
-      />
+      <PageHeader title="Settings" description="Manage your account profile and system users." />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <ChangePasswordCard />
         <UserManagementCard />
       </div>
     </div>
-  );
-};
+  )
+}
 
 const ChangePasswordCard: React.FC = () => {
-  const [oldPassword, setOldPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [oldPassword, setOldPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
 
-  const updatePassword = useUpdatePassword();
+  const updatePassword = useUpdatePassword()
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setSuccess('');
+    e.preventDefault()
+    setError('')
+    setSuccess('')
 
     if (newPassword !== confirmPassword) {
-      setError("New passwords don't match");
-      return;
+      setError("New passwords don't match")
+      return
     }
 
     try {
-      // Get current username from local storage or context if available, 
-      // otherwise assume 'admin' or get from decode token. 
+      // Get current username from local storage or context if available,
+      // otherwise assume 'admin' or get from decode token.
       // For MVP we assume the user knows their username or we use a stored one.
       // Ideally client logic should track logged in user.
       // Let's assume 'admin' for now or handle it better.
-      // Update: The login page stores 'username' in localStorage usually? 
+      // Update: The login page stores 'username' in localStorage usually?
       // The current implementation of LoginPage doesn't store username, only token.
       // We will need to ask the user to input username or fetch it.
       // BUT, let's auto-fill 'admin' as default or add a username field.
-      
-      const username = localStorage.getItem('auth_username') || 'admin';
-      
-      await updatePassword.mutateAsync({ username, oldPass: oldPassword, newPass: newPassword });
-      setSuccess('Password updated successfully');
-      setOldPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
+
+      const username = localStorage.getItem('auth_username') || 'admin'
+
+      await updatePassword.mutateAsync({ username, oldPass: oldPassword, newPass: newPassword })
+      setSuccess('Password updated successfully')
+      setOldPassword('')
+      setNewPassword('')
+      setConfirmPassword('')
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to update password');
+      setError(err.response?.data?.error || 'Failed to update password')
     }
-  };
+  }
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
@@ -70,7 +68,7 @@ const ChangePasswordCard: React.FC = () => {
         </div>
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Change Password</h2>
       </div>
-      
+
       <div className="p-6">
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
@@ -145,41 +143,41 @@ const ChangePasswordCard: React.FC = () => {
         </form>
       </div>
     </div>
-  );
-};
+  )
+}
 
 const UserManagementCard: React.FC = () => {
-  const { data: users, isLoading } = useUsers();
-  const createUser = useCreateUser();
-  const deleteUser = useDeleteUser();
-  
-  const [isAdding, setIsAdding] = useState(false);
-  const [newUsername, setNewUsername] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [error, setError] = useState('');
+  const { data: users, isLoading } = useUsers()
+  const createUser = useCreateUser()
+  const deleteUser = useDeleteUser()
+
+  const [isAdding, setIsAdding] = useState(false)
+  const [newUsername, setNewUsername] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [error, setError] = useState('')
 
   const handleAddUser = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
+    e.preventDefault()
+    setError('')
     try {
-      await createUser.mutateAsync({ username: newUsername, password: newPassword });
-      setNewUsername('');
-      setNewPassword('');
-      setIsAdding(false);
+      await createUser.mutateAsync({ username: newUsername, password: newPassword })
+      setNewUsername('')
+      setNewPassword('')
+      setIsAdding(false)
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to create user');
+      setError(err.response?.data?.error || 'Failed to create user')
     }
-  };
+  }
 
   const handleDelete = async (id: string, username: string) => {
     if (username === 'admin') {
-      alert("Cannot delete the main admin user."); // Simple protection
-      return; 
+      alert('Cannot delete the main admin user.') // Simple protection
+      return
     }
     if (confirm(`Are you sure you want to delete user ${username}?`)) {
-      await deleteUser.mutateAsync(id);
+      await deleteUser.mutateAsync(id)
     }
-  };
+  }
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
@@ -201,11 +199,12 @@ const UserManagementCard: React.FC = () => {
 
       <div className="p-6">
         {isAdding && (
-          <form onSubmit={handleAddUser} className="mb-6 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg space-y-4">
+          <form
+            onSubmit={handleAddUser}
+            className="mb-6 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg space-y-4"
+          >
             <h3 className="text-sm font-medium text-gray-900 dark:text-white">New User Details</h3>
-            {error && (
-              <div className="text-sm text-red-600 dark:text-red-400">{error}</div>
-            )}
+            {error && <div className="text-sm text-red-600 dark:text-red-400">{error}</div>}
             <div className="grid grid-cols-2 gap-4">
               <input
                 type="text"
@@ -265,7 +264,7 @@ const UserManagementCard: React.FC = () => {
                     </p>
                   </div>
                 </div>
-                
+
                 {user.username !== 'admin' && ( // Hide delete for admin
                   <button
                     onClick={() => handleDelete(user.id, user.username)}
@@ -284,5 +283,5 @@ const UserManagementCard: React.FC = () => {
         )}
       </div>
     </div>
-  );
-};
+  )
+}

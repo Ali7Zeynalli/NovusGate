@@ -1,49 +1,52 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { 
-  Server, 
-  Wifi, 
-  WifiOff, 
-  Activity, 
-  ArrowDownToLine, 
+import {
+  Activity,
+  AlertTriangle,
+  ArrowDownToLine,
   ArrowUpFromLine,
+  ChevronRight,
   Clock,
-  Network,
   Cpu,
+  Globe,
   HardDrive,
   MemoryStick,
-  Globe,
-  AlertTriangle,
-  ChevronRight
-} from 'lucide-react';
-import { PageHeader } from '../components/Layout';
-import { Card, StatusIndicator, EmptyState, Button, Badge } from '../components/ui';
-import { useStatsOverview, useSystemInfo } from '../api/client';
+  Network,
+  Server,
+  Wifi,
+  WifiOff,
+} from 'lucide-react'
+import type React from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useStatsOverview, useSystemInfo } from '../api/client'
+import { PageHeader } from '../components/Layout'
+import { Badge, Button, Card, EmptyState, StatusIndicator } from '../components/ui'
 
 // Format bytes to human readable
 const formatBytes = (bytes: number = 0): string => {
-  if (bytes === 0) return '0 B';
-  const k = 1024;
-  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-};
+  if (bytes === 0) return '0 B'
+  const k = 1024
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return parseFloat((bytes / k ** i).toFixed(2)) + ' ' + sizes[i]
+}
 
 // Format uptime
 const formatUptime = (seconds: number): string => {
-  const days = Math.floor(seconds / 86400);
-  const hours = Math.floor((seconds % 86400) / 3600);
-  const mins = Math.floor((seconds % 3600) / 60);
-  if (days > 0) return `${days}d ${hours}h`;
-  if (hours > 0) return `${hours}h ${mins}m`;
-  return `${mins}m`;
-};
+  const days = Math.floor(seconds / 86400)
+  const hours = Math.floor((seconds % 86400) / 3600)
+  const mins = Math.floor((seconds % 3600) / 60)
+  if (days > 0) return `${days}d ${hours}h`
+  if (hours > 0) return `${hours}h ${mins}m`
+  return `${mins}m`
+}
 
 // Progress bar component
-const ProgressBar: React.FC<{ value: number; max: number; color: string; label?: string }> = ({ 
-  value, max, color, label 
+const ProgressBar: React.FC<{ value: number; max: number; color: string; label?: string }> = ({
+  value,
+  max,
+  color,
+  label,
 }) => {
-  const percentage = max > 0 ? Math.min((value / max) * 100, 100) : 0;
+  const percentage = max > 0 ? Math.min((value / max) * 100, 100) : 0
   return (
     <div>
       {label && (
@@ -53,34 +56,31 @@ const ProgressBar: React.FC<{ value: number; max: number; color: string; label?:
         </div>
       )}
       <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-        <div 
+        <div
           className={`h-full ${color} transition-all duration-500`}
           style={{ width: `${percentage}%` }}
         />
       </div>
     </div>
-  );
-};
+  )
+}
 
 export const DashboardPage: React.FC = () => {
-  const navigate = useNavigate();
-  const { data: stats, isLoading: statsLoading } = useStatsOverview();
-  const { data: systemInfo, isLoading: sysLoading } = useSystemInfo();
+  const navigate = useNavigate()
+  const { data: stats, isLoading: statsLoading } = useStatsOverview()
+  const { data: systemInfo, isLoading: sysLoading } = useSystemInfo()
 
   if (statsLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
       </div>
-    );
+    )
   }
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Dashboard"
-        description="Overview of your NovusGate infrastructure"
-      />
+      <PageHeader title="Dashboard" description="Overview of your NovusGate infrastructure" />
 
       {/* Server Info Card */}
       {systemInfo && (
@@ -95,7 +95,7 @@ export const DashboardPage: React.FC = () => {
               Online
             </Badge>
           </div>
-          
+
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {/* CPU */}
             <div className="p-3 bg-white/10 rounded-lg">
@@ -105,9 +105,7 @@ export const DashboardPage: React.FC = () => {
               </div>
               <p className="text-xl font-bold">{systemInfo.cpu_cores} Cores</p>
               <p className="text-xs opacity-70 truncate">{systemInfo.cpu_model || 'Unknown'}</p>
-              {systemInfo.load_1m && (
-                <p className="text-xs mt-1">Load: {systemInfo.load_1m}</p>
-              )}
+              {systemInfo.load_1m && <p className="text-xs mt-1">Load: {systemInfo.load_1m}</p>}
             </div>
 
             {/* Memory */}
@@ -119,9 +117,9 @@ export const DashboardPage: React.FC = () => {
               <p className="text-xl font-bold">{formatBytes(systemInfo.memory_used)}</p>
               <p className="text-xs opacity-70">of {formatBytes(systemInfo.memory_total)}</p>
               <div className="mt-2">
-                <ProgressBar 
-                  value={systemInfo.memory_used} 
-                  max={systemInfo.memory_total} 
+                <ProgressBar
+                  value={systemInfo.memory_used}
+                  max={systemInfo.memory_total}
                   color="bg-white/50"
                 />
               </div>
@@ -136,9 +134,9 @@ export const DashboardPage: React.FC = () => {
               <p className="text-xl font-bold">{formatBytes(systemInfo.disk_used)}</p>
               <p className="text-xs opacity-70">of {formatBytes(systemInfo.disk_total)}</p>
               <div className="mt-2">
-                <ProgressBar 
-                  value={systemInfo.disk_used} 
-                  max={systemInfo.disk_total} 
+                <ProgressBar
+                  value={systemInfo.disk_used}
+                  max={systemInfo.disk_total}
                   color="bg-white/50"
                 />
               </div>
@@ -163,7 +161,9 @@ export const DashboardPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400">Networks</p>
-              <p className="text-3xl font-bold text-gray-900 dark:text-white">{stats?.total_networks || 0}</p>
+              <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                {stats?.total_networks || 0}
+              </p>
             </div>
             <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-xl">
               <Globe className="w-6 h-6 text-purple-600 dark:text-purple-400" />
@@ -176,7 +176,9 @@ export const DashboardPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400">Total Nodes</p>
-              <p className="text-3xl font-bold text-gray-900 dark:text-white">{stats?.total_nodes || 0}</p>
+              <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                {stats?.total_nodes || 0}
+              </p>
             </div>
             <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
               <Server className="w-6 h-6 text-blue-600 dark:text-blue-400" />
@@ -234,7 +236,9 @@ export const DashboardPage: React.FC = () => {
             </div>
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400">Total Download</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{formatBytes(stats?.total_rx || 0)}</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                {formatBytes(stats?.total_rx || 0)}
+              </p>
             </div>
           </div>
           <p className="text-xs text-gray-500">Across all networks</p>
@@ -247,7 +251,9 @@ export const DashboardPage: React.FC = () => {
             </div>
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400">Total Upload</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{formatBytes(stats?.total_tx || 0)}</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                {formatBytes(stats?.total_tx || 0)}
+              </p>
             </div>
           </div>
           <p className="text-xs text-gray-500">Across all networks</p>
@@ -269,7 +275,7 @@ export const DashboardPage: React.FC = () => {
         {stats?.networks && stats.networks.length > 0 ? (
           <div className="space-y-3">
             {stats.networks.map((network) => (
-              <div 
+              <div
                 key={network.id}
                 className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors"
                 onClick={() => navigate('/nodes')}
@@ -280,8 +286,12 @@ export const DashboardPage: React.FC = () => {
                       <Network className="w-5 h-5 text-blue-600" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-900 dark:text-white">{network.name}</h3>
-                      <p className="text-xs text-gray-500 font-mono">{network.cidr} • {network.interface}</p>
+                      <h3 className="font-semibold text-gray-900 dark:text-white">
+                        {network.name}
+                      </h3>
+                      <p className="text-xs text-gray-500 font-mono">
+                        {network.cidr} • {network.interface}
+                      </p>
                     </div>
                   </div>
                   <div className="text-right">
@@ -300,19 +310,27 @@ export const DashboardPage: React.FC = () => {
                 <div className="grid grid-cols-4 gap-2 text-xs">
                   <div className="flex items-center gap-1">
                     <span className="w-2 h-2 bg-green-500 rounded-full" />
-                    <span className="text-gray-600 dark:text-gray-400">Online: {network.online_nodes}</span>
+                    <span className="text-gray-600 dark:text-gray-400">
+                      Online: {network.online_nodes}
+                    </span>
                   </div>
                   <div className="flex items-center gap-1">
                     <span className="w-2 h-2 bg-gray-400 rounded-full" />
-                    <span className="text-gray-600 dark:text-gray-400">Offline: {network.offline_nodes}</span>
+                    <span className="text-gray-600 dark:text-gray-400">
+                      Offline: {network.offline_nodes}
+                    </span>
                   </div>
                   <div className="flex items-center gap-1">
                     <span className="w-2 h-2 bg-orange-500 rounded-full" />
-                    <span className="text-gray-600 dark:text-gray-400">Pending: {network.pending_nodes}</span>
+                    <span className="text-gray-600 dark:text-gray-400">
+                      Pending: {network.pending_nodes}
+                    </span>
                   </div>
                   <div className="flex items-center gap-1">
                     <span className="w-2 h-2 bg-red-500 rounded-full" />
-                    <span className="text-gray-600 dark:text-gray-400">Expired: {network.expired_nodes}</span>
+                    <span className="text-gray-600 dark:text-gray-400">
+                      Expired: {network.expired_nodes}
+                    </span>
                   </div>
                 </div>
 
@@ -337,7 +355,7 @@ export const DashboardPage: React.FC = () => {
             description="Create your first network to get started"
             action={{
               label: 'Create Network',
-              onClick: () => navigate('/networks')
+              onClick: () => navigate('/networks'),
             }}
           />
         )}
@@ -358,9 +376,9 @@ export const DashboardPage: React.FC = () => {
                 These nodes need attention - their access has expired
               </p>
             </div>
-            <Button 
-              variant="secondary" 
-              size="sm" 
+            <Button
+              variant="secondary"
+              size="sm"
               className="ml-auto"
               onClick={() => navigate('/nodes')}
             >
@@ -370,7 +388,7 @@ export const DashboardPage: React.FC = () => {
         </Card>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default DashboardPage;
+export default DashboardPage

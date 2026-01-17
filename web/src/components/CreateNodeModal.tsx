@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
-import { Modal, Input, Select, Button } from './ui';
-import { Clock } from 'lucide-react';
+import { Clock } from 'lucide-react'
+import type React from 'react'
+import { useState } from 'react'
+import { Button, Input, Modal, Select } from './ui'
 
 interface CreateNodeModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSubmit: (data: { name: string; expires_at?: string }) => void;
-  isLoading?: boolean;
+  isOpen: boolean
+  onClose: () => void
+  onSubmit: (data: { name: string; expires_at?: string }) => void
+  isLoading?: boolean
 }
 
 export const CreateNodeModal: React.FC<CreateNodeModalProps> = ({
@@ -15,9 +16,9 @@ export const CreateNodeModal: React.FC<CreateNodeModalProps> = ({
   onSubmit,
   isLoading,
 }) => {
-  const [name, setName] = useState('');
-  const [expiryType, setExpiryType] = useState('forever');
-  const [customDate, setCustomDate] = useState('');
+  const [name, setName] = useState('')
+  const [expiryType, setExpiryType] = useState('forever')
+  const [customDate, setCustomDate] = useState('')
 
   const expiryOptions = [
     { value: 'forever', label: 'Forever (No limit)' },
@@ -25,26 +26,26 @@ export const CreateNodeModal: React.FC<CreateNodeModalProps> = ({
     { value: '1d', label: '1 Day' },
     { value: '1w', label: '1 Week' },
     { value: 'custom', label: 'Custom Date' },
-  ];
+  ]
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    let expiresAt: string | undefined;
-    const now = new Date();
+    e.preventDefault()
+
+    let expiresAt: string | undefined
+    const now = new Date()
 
     if (expiryType === '1h') {
-      expiresAt = new Date(now.getTime() + 60 * 60 * 1000).toISOString();
+      expiresAt = new Date(now.getTime() + 60 * 60 * 1000).toISOString()
     } else if (expiryType === '1d') {
-      expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString();
+      expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString()
     } else if (expiryType === '1w') {
-      expiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString();
+      expiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString()
     } else if (expiryType === 'custom' && customDate) {
-      expiresAt = new Date(customDate).toISOString();
+      expiresAt = new Date(customDate).toISOString()
     }
 
-    onSubmit({ name, expires_at: expiresAt });
-  };
+    onSubmit({ name, expires_at: expiresAt })
+  }
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Create New Peer">
@@ -100,5 +101,5 @@ export const CreateNodeModal: React.FC<CreateNodeModalProps> = ({
         </div>
       </form>
     </Modal>
-  );
-};
+  )
+}

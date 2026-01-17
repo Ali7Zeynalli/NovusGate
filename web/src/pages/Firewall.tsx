@@ -1,57 +1,74 @@
-import React, { useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
-  Shield, ShieldOff, RefreshCw, Trash2, Plus, Ban, CheckCircle, XCircle,
-  Globe, Lock, Unlock, Download, Upload, RotateCcw, AlertTriangle, Network, Server,
-  Info, Monitor, ArrowRight
-} from 'lucide-react';
-import { PageHeader } from '../components/Layout';
-import { Card, Button, Badge, Modal } from '../components/ui';
+  AlertTriangle,
+  ArrowRight,
+  Ban,
+  CheckCircle,
+  Download,
+  Globe,
+  Info,
+  Lock,
+  Monitor,
+  Network,
+  Plus,
+  RefreshCw,
+  RotateCcw,
+  Server,
+  Shield,
+  ShieldOff,
+  Trash2,
+  Unlock,
+  Upload,
+  XCircle,
+} from 'lucide-react'
+import React, { useState } from 'react'
 import {
-  useFirewallRules,
-  useOpenPort,
-  useClosePort,
-  useBlockIP,
-  useAllowIP,
-  useDeleteFirewallRule,
-  useResetFirewall,
-  useVPNFirewallRules,
-  useCreateVPNFirewallRule,
-  useUpdateVPNFirewallRule,
-  useDeleteVPNFirewallRule,
-  useApplyVPNFirewallRules,
-  useNetworks,
   api,
-} from '../api/client';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+  useAllowIP,
+  useApplyVPNFirewallRules,
+  useBlockIP,
+  useClosePort,
+  useCreateVPNFirewallRule,
+  useDeleteFirewallRule,
+  useDeleteVPNFirewallRule,
+  useFirewallRules,
+  useNetworks,
+  useOpenPort,
+  useResetFirewall,
+  useUpdateVPNFirewallRule,
+  useVPNFirewallRules,
+} from '../api/client'
+import { PageHeader } from '../components/Layout'
+import { Badge, Button, Card, Modal } from '../components/ui'
 import type {
-  FirewallRule,
   ChainInfo,
-  VPNFirewallRule,
-  VPNFirewallRuleRequest,
+  FirewallRule,
+  Network as NetworkType,
+  Node,
   VPNEndpointType,
   VPNFirewallAction,
   VPNFirewallProtocol,
-  Network as NetworkType,
-  Node,
-} from '../types';
+  VPNFirewallRule,
+  VPNFirewallRuleRequest,
+} from '../types'
 
-type TabId = 'overview' | 'host-rules' | 'open-ports' | 'vpn-rules' | 'blocked-ips';
+type TabId = 'overview' | 'host-rules' | 'open-ports' | 'vpn-rules' | 'blocked-ips'
 
 export const Firewall: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<TabId>('overview');
-  const [selectedChain, setSelectedChain] = useState<string>('INPUT');
-  
+  const [activeTab, setActiveTab] = useState<TabId>('overview')
+  const [selectedChain, setSelectedChain] = useState<string>('INPUT')
+
   // Modals
-  const [showOpenPortModal, setShowOpenPortModal] = useState(false);
-  const [showBlockIPModal, setShowBlockIPModal] = useState(false);
-  const [showAllowIPModal, setShowAllowIPModal] = useState(false);
-  const [showVPNRuleModal, setShowVPNRuleModal] = useState(false);
-  const [editingVPNRule, setEditingVPNRule] = useState<VPNFirewallRule | null>(null);
+  const [showOpenPortModal, setShowOpenPortModal] = useState(false)
+  const [showBlockIPModal, setShowBlockIPModal] = useState(false)
+  const [showAllowIPModal, setShowAllowIPModal] = useState(false)
+  const [showVPNRuleModal, setShowVPNRuleModal] = useState(false)
+  const [editingVPNRule, setEditingVPNRule] = useState<VPNFirewallRule | null>(null)
 
   // Forms
-  const [openPortForm, setOpenPortForm] = useState({ port: '', protocol: 'tcp', source: '' });
-  const [blockIPForm, setBlockIPForm] = useState({ ip: '', ports: '' });
-  const [allowIPForm, setAllowIPForm] = useState({ ip: '', ports: '' });
+  const [openPortForm, setOpenPortForm] = useState({ port: '', protocol: 'tcp', source: '' })
+  const [blockIPForm, setBlockIPForm] = useState({ ip: '', ports: '' })
+  const [allowIPForm, setAllowIPForm] = useState({ ip: '', ports: '' })
   const [vpnRuleForm, setVPNRuleForm] = useState<VPNFirewallRuleRequest>({
     name: '',
     description: '',
@@ -62,193 +79,202 @@ export const Firewall: React.FC = () => {
     action: 'accept',
     priority: 100,
     enabled: true,
-  });
+  })
 
   // Data queries
-  const { data: firewallStatus, isLoading: rulesLoading, refetch: refetchRules } = useFirewallRules();
-  const { data: vpnRules, isLoading: vpnLoading, refetch: refetchVPN } = useVPNFirewallRules();
-  const { data: networks } = useNetworks();
+  const {
+    data: firewallStatus,
+    isLoading: rulesLoading,
+    refetch: refetchRules,
+  } = useFirewallRules()
+  const { data: vpnRules, isLoading: vpnLoading, refetch: refetchVPN } = useVPNFirewallRules()
+  const { data: networks } = useNetworks()
 
   // Mutations
-  const openPortMutation = useOpenPort();
-  const closePortMutation = useClosePort();
-  const blockIPMutation = useBlockIP();
-  const allowIPMutation = useAllowIP();
-  const deleteRuleMutation = useDeleteFirewallRule();
-  const resetFirewallMutation = useResetFirewall();
-  const createVPNRuleMutation = useCreateVPNFirewallRule();
-  const updateVPNRuleMutation = useUpdateVPNFirewallRule();
-  const deleteVPNRuleMutation = useDeleteVPNFirewallRule();
-  const applyVPNRulesMutation = useApplyVPNFirewallRules();
+  const openPortMutation = useOpenPort()
+  const closePortMutation = useClosePort()
+  const blockIPMutation = useBlockIP()
+  const allowIPMutation = useAllowIP()
+  const deleteRuleMutation = useDeleteFirewallRule()
+  const resetFirewallMutation = useResetFirewall()
+  const createVPNRuleMutation = useCreateVPNFirewallRule()
+  const updateVPNRuleMutation = useUpdateVPNFirewallRule()
+  const deleteVPNRuleMutation = useDeleteVPNFirewallRule()
+  const applyVPNRulesMutation = useApplyVPNFirewallRules()
 
   const handleRefresh = () => {
-    refetchRules();
-    refetchVPN();
-  };
+    refetchRules()
+    refetchVPN()
+  }
 
   // Get chains data
-  const chains = firewallStatus?.chains || [];
-  const currentChain = chains.find((c: ChainInfo) => c.name === selectedChain);
+  const chains = firewallStatus?.chains || []
+  const currentChain = chains.find((c: ChainInfo) => c.name === selectedChain)
 
   // Calculate stats
-  const totalRules = firewallStatus?.total_rules || 0;
-  const blockedIPs = firewallStatus?.blocked_ips || 0;
-  const openPorts = firewallStatus?.open_ports || 0;
-  const vpnRuleCount = vpnRules?.length || 0;
+  const totalRules = firewallStatus?.total_rules || 0
+  const blockedIPs = firewallStatus?.blocked_ips || 0
+  const openPorts = firewallStatus?.open_ports || 0
+  const vpnRuleCount = vpnRules?.length || 0
 
   // Get blocked IPs from rules
   const getBlockedIPs = (): FirewallRule[] => {
-    const blocked: FirewallRule[] = [];
+    const blocked: FirewallRule[] = []
     chains.forEach((chain: ChainInfo) => {
       chain.rules?.forEach((rule: FirewallRule) => {
         if (rule.target === 'DROP' && rule.source !== 'anywhere' && rule.source !== '0.0.0.0/0') {
-          blocked.push(rule);
+          blocked.push(rule)
         }
-      });
-    });
-    return blocked;
-  };
+      })
+    })
+    return blocked
+  }
 
   // Get open ports from rules
   const getOpenPorts = (): FirewallRule[] => {
-    const ports: FirewallRule[] = [];
+    const ports: FirewallRule[] = []
     chains.forEach((chain: ChainInfo) => {
       if (chain.name === 'INPUT') {
         chain.rules?.forEach((rule: FirewallRule) => {
           if (rule.target === 'ACCEPT' && rule.port && rule.port !== '-') {
-            ports.push(rule);
+            ports.push(rule)
           }
-        });
+        })
       }
-    });
-    return ports;
-  };
+    })
+    return ports
+  }
 
   // Close port handler
   const handleClosePort = async (port: number, protocol: string, isProtected: boolean) => {
     if (isProtected) {
-      alert('This port is protected and cannot be closed (SSH, WireGuard or Admin API).');
-      return;
+      alert('This port is protected and cannot be closed (SSH, WireGuard or Admin API).')
+      return
     }
-    if (!confirm(`Are you sure you want to close port ${port}/${protocol}?`)) return;
+    if (!confirm(`Are you sure you want to close port ${port}/${protocol}?`)) return
     try {
-      await closePortMutation.mutateAsync({ port, protocol });
+      await closePortMutation.mutateAsync({ port, protocol })
     } catch (error: any) {
-      const errorMessage = error?.response?.data?.error || error?.message || 'Unknown error';
-      console.error('Failed to close port:', error);
-      alert(`Failed to close port: ${errorMessage}`);
+      const errorMessage = error?.response?.data?.error || error?.message || 'Unknown error'
+      console.error('Failed to close port:', error)
+      alert(`Failed to close port: ${errorMessage}`)
     }
-  };
+  }
 
   // Handlers
   const handleOpenPort = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
     try {
       await openPortMutation.mutateAsync({
         port: parseInt(openPortForm.port),
         protocol: openPortForm.protocol,
         source: openPortForm.source || undefined,
-      });
-      setShowOpenPortModal(false);
-      setOpenPortForm({ port: '', protocol: 'tcp', source: '' });
+      })
+      setShowOpenPortModal(false)
+      setOpenPortForm({ port: '', protocol: 'tcp', source: '' })
     } catch (error) {
-      console.error('Failed to open port:', error);
+      console.error('Failed to open port:', error)
     }
-  };
+  }
 
   const handleBlockIP = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
     try {
       await blockIPMutation.mutateAsync({
         ip: blockIPForm.ip,
         ports: blockIPForm.ports || undefined,
-      });
-      setShowBlockIPModal(false);
-      setBlockIPForm({ ip: '', ports: '' });
+      })
+      setShowBlockIPModal(false)
+      setBlockIPForm({ ip: '', ports: '' })
     } catch (error) {
-      console.error('Failed to block IP:', error);
+      console.error('Failed to block IP:', error)
     }
-  };
+  }
 
   const handleAllowIP = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
     try {
       await allowIPMutation.mutateAsync({
         ip: allowIPForm.ip,
         ports: allowIPForm.ports || undefined,
-      });
-      setShowAllowIPModal(false);
-      setAllowIPForm({ ip: '', ports: '' });
+      })
+      setShowAllowIPModal(false)
+      setAllowIPForm({ ip: '', ports: '' })
     } catch (error) {
-      console.error('Failed to allow IP:', error);
+      console.error('Failed to allow IP:', error)
     }
-  };
+  }
 
   const handleDeleteRule = async (chain: string, lineNumber: number, isProtected: boolean) => {
     if (isProtected) {
-      alert('This rule is protected and cannot be deleted.');
-      return;
+      alert('This rule is protected and cannot be deleted.')
+      return
     }
-    if (!confirm(`Are you sure you want to delete rule #${lineNumber} from ${chain}?`)) return;
+    if (!confirm(`Are you sure you want to delete rule #${lineNumber} from ${chain}?`)) return
     try {
-      await deleteRuleMutation.mutateAsync({ chain, line_number: lineNumber });
+      await deleteRuleMutation.mutateAsync({ chain, line_number: lineNumber })
     } catch (error) {
-      console.error('Failed to delete rule:', error);
+      console.error('Failed to delete rule:', error)
     }
-  };
+  }
 
   const handleUnblockIP = async (chain: string, lineNumber: number) => {
-    if (!confirm('Are you sure you want to unblock this IP?')) return;
+    if (!confirm('Are you sure you want to unblock this IP?')) return
     try {
-      await deleteRuleMutation.mutateAsync({ chain, line_number: lineNumber, force: true });
+      await deleteRuleMutation.mutateAsync({ chain, line_number: lineNumber, force: true })
     } catch (error) {
-      console.error('Failed to unblock IP:', error);
+      console.error('Failed to unblock IP:', error)
     }
-  };
+  }
 
   const handleExportRules = async () => {
     try {
-      const rules = await api.exportFirewallRules();
-      const blob = new Blob([rules], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `firewall-rules-${new Date().toISOString().split('T')[0]}.txt`;
-      a.click();
-      URL.revokeObjectURL(url);
+      const rules = await api.exportFirewallRules()
+      const blob = new Blob([rules], { type: 'text/plain' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `firewall-rules-${new Date().toISOString().split('T')[0]}.txt`
+      a.click()
+      URL.revokeObjectURL(url)
     } catch (error) {
-      console.error('Failed to export rules:', error);
+      console.error('Failed to export rules:', error)
     }
-  };
+  }
 
   const handleResetFirewall = async () => {
-    if (!confirm('Are you sure you want to reset firewall to default NovusGate configuration? This will remove all custom rules.')) return;
+    if (
+      !confirm(
+        'Are you sure you want to reset firewall to default NovusGate configuration? This will remove all custom rules.'
+      )
+    )
+      return
     try {
-      await resetFirewallMutation.mutateAsync();
+      await resetFirewallMutation.mutateAsync()
     } catch (error) {
-      console.error('Failed to reset firewall:', error);
+      console.error('Failed to reset firewall:', error)
     }
-  };
+  }
 
   // VPN Rule handlers
   const handleVPNRuleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
     try {
       if (editingVPNRule) {
-        await updateVPNRuleMutation.mutateAsync({ id: editingVPNRule.id, request: vpnRuleForm });
+        await updateVPNRuleMutation.mutateAsync({ id: editingVPNRule.id, request: vpnRuleForm })
       } else {
-        await createVPNRuleMutation.mutateAsync(vpnRuleForm);
+        await createVPNRuleMutation.mutateAsync(vpnRuleForm)
       }
-      setShowVPNRuleModal(false);
-      setEditingVPNRule(null);
-      resetVPNRuleForm();
+      setShowVPNRuleModal(false)
+      setEditingVPNRule(null)
+      resetVPNRuleForm()
     } catch (error) {
-      console.error('Failed to save VPN rule:', error);
+      console.error('Failed to save VPN rule:', error)
     }
-  };
+  }
 
   const handleEditVPNRule = (rule: VPNFirewallRule) => {
-    setEditingVPNRule(rule);
+    setEditingVPNRule(rule)
     setVPNRuleForm({
       name: rule.name,
       description: rule.description || '',
@@ -265,18 +291,18 @@ export const Firewall: React.FC = () => {
       action: rule.action,
       priority: rule.priority,
       enabled: rule.enabled,
-    });
-    setShowVPNRuleModal(true);
-  };
+    })
+    setShowVPNRuleModal(true)
+  }
 
   const handleDeleteVPNRule = async (id: string, name: string) => {
-    if (!confirm(`Are you sure you want to delete VPN rule "${name}"?`)) return;
+    if (!confirm(`Are you sure you want to delete VPN rule "${name}"?`)) return
     try {
-      await deleteVPNRuleMutation.mutateAsync(id);
+      await deleteVPNRuleMutation.mutateAsync(id)
     } catch (error) {
-      console.error('Failed to delete VPN rule:', error);
+      console.error('Failed to delete VPN rule:', error)
     }
-  };
+  }
 
   const resetVPNRuleForm = () => {
     setVPNRuleForm({
@@ -289,8 +315,8 @@ export const Firewall: React.FC = () => {
       action: 'accept',
       priority: 100,
       enabled: true,
-    });
-  };
+    })
+  }
 
   const tabs = [
     { id: 'overview' as TabId, label: 'Overview', icon: Shield },
@@ -298,7 +324,7 @@ export const Firewall: React.FC = () => {
     { id: 'open-ports' as TabId, label: 'Open Ports', icon: Globe, count: openPorts },
     { id: 'vpn-rules' as TabId, label: 'VPN Rules', icon: Network, count: vpnRuleCount },
     { id: 'blocked-ips' as TabId, label: 'Blocked IPs', icon: Ban, count: blockedIPs },
-  ];
+  ]
 
   // Quick Actions Component - shown in all tabs
   const QuickActionsBar = () => (
@@ -315,7 +341,15 @@ export const Firewall: React.FC = () => {
             <CheckCircle className="w-4 h-4 mr-1" /> Allow IP
           </Button>
           {activeTab === 'vpn-rules' && (
-            <Button variant="primary" size="sm" onClick={() => { resetVPNRuleForm(); setEditingVPNRule(null); setShowVPNRuleModal(true); }}>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => {
+                resetVPNRuleForm()
+                setEditingVPNRule(null)
+                setShowVPNRuleModal(true)
+              }}
+            >
               <Plus className="w-4 h-4 mr-1" /> VPN Rule
             </Button>
           )}
@@ -330,14 +364,14 @@ export const Firewall: React.FC = () => {
         </div>
       </div>
     </Card>
-  );
+  )
 
   if (rulesLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <RefreshCw className="w-8 h-8 animate-spin text-blue-500" />
       </div>
-    );
+    )
   }
 
   return (
@@ -350,7 +384,12 @@ export const Firewall: React.FC = () => {
             <Button variant="secondary" size="sm" onClick={handleExportRules}>
               <Download className="w-4 h-4 mr-1" /> Export
             </Button>
-            <Button variant="secondary" size="sm" onClick={handleResetFirewall} loading={resetFirewallMutation.isPending}>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handleResetFirewall}
+              loading={resetFirewallMutation.isPending}
+            >
               <RotateCcw className="w-4 h-4 mr-1" /> Reset
             </Button>
             <Button variant="secondary" size="sm" onClick={handleRefresh}>
@@ -362,7 +401,7 @@ export const Firewall: React.FC = () => {
 
       {/* Tab Navigation */}
       <div className="flex gap-1 p-1 bg-gray-100 dark:bg-gray-800 rounded-lg overflow-x-auto">
-        {tabs.map(tab => (
+        {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
@@ -444,7 +483,12 @@ export const Firewall: React.FC = () => {
       )}
 
       {/* Open Port Modal */}
-      <Modal isOpen={showOpenPortModal} onClose={() => setShowOpenPortModal(false)} title="Open Port" size="md">
+      <Modal
+        isOpen={showOpenPortModal}
+        onClose={() => setShowOpenPortModal(false)}
+        title="Open Port"
+        size="md"
+      >
         <form onSubmit={handleOpenPort} className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">Port Number</label>
@@ -482,14 +526,23 @@ export const Firewall: React.FC = () => {
             />
           </div>
           <div className="flex justify-end gap-2 pt-4">
-            <Button variant="secondary" type="button" onClick={() => setShowOpenPortModal(false)}>Cancel</Button>
-            <Button variant="primary" type="submit" loading={openPortMutation.isPending}>Open Port</Button>
+            <Button variant="secondary" type="button" onClick={() => setShowOpenPortModal(false)}>
+              Cancel
+            </Button>
+            <Button variant="primary" type="submit" loading={openPortMutation.isPending}>
+              Open Port
+            </Button>
           </div>
         </form>
       </Modal>
 
       {/* Block IP Modal */}
-      <Modal isOpen={showBlockIPModal} onClose={() => setShowBlockIPModal(false)} title="Block IP Address" size="md">
+      <Modal
+        isOpen={showBlockIPModal}
+        onClose={() => setShowBlockIPModal(false)}
+        title="Block IP Address"
+        size="md"
+      >
         <form onSubmit={handleBlockIP} className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">IP Address or CIDR</label>
@@ -513,14 +566,23 @@ export const Firewall: React.FC = () => {
             />
           </div>
           <div className="flex justify-end gap-2 pt-4">
-            <Button variant="secondary" type="button" onClick={() => setShowBlockIPModal(false)}>Cancel</Button>
-            <Button variant="danger" type="submit" loading={blockIPMutation.isPending}>Block IP</Button>
+            <Button variant="secondary" type="button" onClick={() => setShowBlockIPModal(false)}>
+              Cancel
+            </Button>
+            <Button variant="danger" type="submit" loading={blockIPMutation.isPending}>
+              Block IP
+            </Button>
           </div>
         </form>
       </Modal>
 
       {/* Allow IP Modal */}
-      <Modal isOpen={showAllowIPModal} onClose={() => setShowAllowIPModal(false)} title="Allow IP Address" size="md">
+      <Modal
+        isOpen={showAllowIPModal}
+        onClose={() => setShowAllowIPModal(false)}
+        title="Allow IP Address"
+        size="md"
+      >
         <form onSubmit={handleAllowIP} className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">IP Address or CIDR</label>
@@ -544,8 +606,12 @@ export const Firewall: React.FC = () => {
             />
           </div>
           <div className="flex justify-end gap-2 pt-4">
-            <Button variant="secondary" type="button" onClick={() => setShowAllowIPModal(false)}>Cancel</Button>
-            <Button variant="primary" type="submit" loading={allowIPMutation.isPending}>Allow IP</Button>
+            <Button variant="secondary" type="button" onClick={() => setShowAllowIPModal(false)}>
+              Cancel
+            </Button>
+            <Button variant="primary" type="submit" loading={allowIPMutation.isPending}>
+              Allow IP
+            </Button>
           </div>
         </form>
       </Modal>
@@ -553,7 +619,10 @@ export const Firewall: React.FC = () => {
       {/* VPN Rule Modal */}
       <VPNRuleModal
         isOpen={showVPNRuleModal}
-        onClose={() => { setShowVPNRuleModal(false); setEditingVPNRule(null); }}
+        onClose={() => {
+          setShowVPNRuleModal(false)
+          setEditingVPNRule(null)
+        }}
         form={vpnRuleForm}
         setForm={setVPNRuleForm}
         onSubmit={handleVPNRuleSubmit}
@@ -562,20 +631,19 @@ export const Firewall: React.FC = () => {
         networks={networks || []}
       />
     </div>
-  );
-};
-
+  )
+}
 
 // Overview Tab Component
 interface OverviewTabProps {
-  chains: ChainInfo[];
-  totalRules: number;
-  blockedIPs: number;
-  openPorts: number;
-  vpnRuleCount: number;
-  onOpenPort: () => void;
-  onBlockIP: () => void;
-  onAllowIP: () => void;
+  chains: ChainInfo[]
+  totalRules: number
+  blockedIPs: number
+  openPorts: number
+  vpnRuleCount: number
+  onOpenPort: () => void
+  onBlockIP: () => void
+  onAllowIP: () => void
 }
 
 const OverviewTab: React.FC<OverviewTabProps> = ({
@@ -647,7 +715,10 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
         <div className="p-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {chains.map((chain: ChainInfo) => (
-              <div key={chain.name} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+              <div
+                key={chain.name}
+                className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg"
+              >
                 <div className="flex items-center gap-2">
                   <Lock className="w-4 h-4 text-gray-500" />
                   <span className="font-medium">{chain.name}</span>
@@ -712,18 +783,17 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
         </div>
       </Card>
     </div>
-  );
-};
-
+  )
+}
 
 // Host Rules Tab Component
 interface HostRulesTabProps {
-  chains: ChainInfo[];
-  selectedChain: string;
-  onChainChange: (chain: string) => void;
-  currentChain?: ChainInfo;
-  onDeleteRule: (chain: string, lineNumber: number, isProtected: boolean) => void;
-  deleteLoading: boolean;
+  chains: ChainInfo[]
+  selectedChain: string
+  onChainChange: (chain: string) => void
+  currentChain?: ChainInfo
+  onDeleteRule: (chain: string, lineNumber: number, isProtected: boolean) => void
+  deleteLoading: boolean
 }
 
 const HostRulesTab: React.FC<HostRulesTabProps> = ({
@@ -746,7 +816,9 @@ const HostRulesTab: React.FC<HostRulesTabProps> = ({
             className="px-3 py-1.5 text-sm border rounded-lg dark:bg-gray-700 dark:border-gray-600 font-medium"
           >
             {chains.map((chain: ChainInfo) => (
-              <option key={chain.name} value={chain.name}>{chain.name}</option>
+              <option key={chain.name} value={chain.name}>
+                {chain.name}
+              </option>
             ))}
           </select>
           {currentChain && (
@@ -767,22 +839,49 @@ const HostRulesTab: React.FC<HostRulesTabProps> = ({
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
               <thead className="bg-gray-50 dark:bg-gray-800">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">#</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Target</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Protocol</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Source</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Destination</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Port</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Interface</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    #
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Target
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Protocol
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Source
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Destination
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Port
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Interface
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                 {currentChain.rules.map((rule: FirewallRule) => (
-                  <tr key={rule.number} className={rule.protected ? 'bg-yellow-50 dark:bg-yellow-900/10' : ''}>
+                  <tr
+                    key={rule.number}
+                    className={rule.protected ? 'bg-yellow-50 dark:bg-yellow-900/10' : ''}
+                  >
                     <td className="px-4 py-3 text-sm font-mono">{rule.number}</td>
                     <td className="px-4 py-3">
-                      <Badge variant={rule.target === 'ACCEPT' ? 'success' : rule.target === 'DROP' ? 'danger' : 'warning'}>
+                      <Badge
+                        variant={
+                          rule.target === 'ACCEPT'
+                            ? 'success'
+                            : rule.target === 'DROP'
+                              ? 'danger'
+                              : 'warning'
+                        }
+                      >
                         {rule.target}
                       </Badge>
                     </td>
@@ -823,19 +922,18 @@ const HostRulesTab: React.FC<HostRulesTabProps> = ({
         </div>
       </Card>
     </div>
-  );
-};
-
+  )
+}
 
 // VPN Rules Tab Component
 interface VPNRulesTabProps {
-  rules: VPNFirewallRule[];
-  loading: boolean;
-  onEditRule: (rule: VPNFirewallRule) => void;
-  onDeleteRule: (id: string, name: string) => void;
-  onApplyRules: () => void;
-  applyLoading: boolean;
-  deleteLoading: boolean;
+  rules: VPNFirewallRule[]
+  loading: boolean
+  onEditRule: (rule: VPNFirewallRule) => void
+  onDeleteRule: (id: string, name: string) => void
+  onApplyRules: () => void
+  applyLoading: boolean
+  deleteLoading: boolean
 }
 
 const VPNRulesTab: React.FC<VPNRulesTabProps> = ({
@@ -848,41 +946,41 @@ const VPNRulesTab: React.FC<VPNRulesTabProps> = ({
   deleteLoading,
 }) => {
   const getEndpointDisplay = (rule: VPNFirewallRule, type: 'source' | 'dest') => {
-    const endpointType = type === 'source' ? rule.source_type : rule.dest_type;
-    const networkName = type === 'source' ? rule.source_network_name : rule.dest_network_name;
-    const nodeName = type === 'source' ? rule.source_node_name : rule.dest_node_name;
-    const ip = type === 'source' ? rule.source_ip : rule.dest_ip;
+    const endpointType = type === 'source' ? rule.source_type : rule.dest_type
+    const networkName = type === 'source' ? rule.source_network_name : rule.dest_network_name
+    const nodeName = type === 'source' ? rule.source_node_name : rule.dest_node_name
+    const ip = type === 'source' ? rule.source_ip : rule.dest_ip
 
     switch (endpointType) {
       case 'any':
-        return <span className="text-gray-500">Any</span>;
+        return <span className="text-gray-500">Any</span>
       case 'network':
         return (
           <span className="flex items-center gap-1">
             <Network className="w-3 h-3 text-blue-500" />
             {networkName || 'Unknown Network'}
           </span>
-        );
+        )
       case 'node':
         return (
           <span className="flex items-center gap-1">
             <Server className="w-3 h-3 text-green-500" />
             {nodeName || 'Unknown Node'}
           </span>
-        );
+        )
       case 'custom':
-        return <span className="font-mono text-sm">{ip}</span>;
+        return <span className="font-mono text-sm">{ip}</span>
       default:
-        return <span className="text-gray-500">-</span>;
+        return <span className="text-gray-500">-</span>
     }
-  };
+  }
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <RefreshCw className="w-8 h-8 animate-spin text-blue-500" />
       </div>
-    );
+    )
   }
 
   return (
@@ -891,7 +989,9 @@ const VPNRulesTab: React.FC<VPNRulesTabProps> = ({
       <Card className="p-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-gray-500">Traffic control between VPN networks (FORWARD chain)</p>
+            <p className="text-sm text-gray-500">
+              Traffic control between VPN networks (FORWARD chain)
+            </p>
           </div>
           <Button variant="secondary" size="sm" onClick={onApplyRules} loading={applyLoading}>
             <RefreshCw className="w-4 h-4 mr-1" /> Apply Rules
@@ -906,15 +1006,33 @@ const VPNRulesTab: React.FC<VPNRulesTabProps> = ({
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
               <thead className="bg-gray-50 dark:bg-gray-800">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Priority</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Source</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Destination</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Protocol</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Port</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Priority
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Name
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Source
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Destination
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Protocol
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Port
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Action
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Status
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -925,7 +1043,9 @@ const VPNRulesTab: React.FC<VPNRulesTabProps> = ({
                       <div>
                         <p className="font-medium">{rule.name}</p>
                         {rule.description && (
-                          <p className="text-xs text-gray-500 truncate max-w-[200px]">{rule.description}</p>
+                          <p className="text-xs text-gray-500 truncate max-w-[200px]">
+                            {rule.description}
+                          </p>
                         )}
                       </div>
                     </td>
@@ -934,8 +1054,20 @@ const VPNRulesTab: React.FC<VPNRulesTabProps> = ({
                     <td className="px-4 py-3 text-sm uppercase">{rule.protocol}</td>
                     <td className="px-4 py-3 text-sm font-mono">{rule.port || 'all'}</td>
                     <td className="px-4 py-3">
-                      <Badge variant={rule.action === 'accept' ? 'success' : rule.action === 'drop' ? 'danger' : 'warning'}>
-                        {rule.action === 'accept' ? 'ACCEPT' : rule.action === 'drop' ? 'DROP' : 'REJECT'}
+                      <Badge
+                        variant={
+                          rule.action === 'accept'
+                            ? 'success'
+                            : rule.action === 'drop'
+                              ? 'danger'
+                              : 'warning'
+                        }
+                      >
+                        {rule.action === 'accept'
+                          ? 'ACCEPT'
+                          : rule.action === 'drop'
+                            ? 'DROP'
+                            : 'REJECT'}
                       </Badge>
                     </td>
                     <td className="px-4 py-3">
@@ -945,10 +1077,21 @@ const VPNRulesTab: React.FC<VPNRulesTabProps> = ({
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1">
-                        <Button variant="ghost" size="sm" onClick={() => onEditRule(rule)} title="Edit">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onEditRule(rule)}
+                          title="Edit"
+                        >
                           <Shield className="w-4 h-4 text-blue-500" />
                         </Button>
-                        <Button variant="ghost" size="sm" onClick={() => onDeleteRule(rule.id, rule.name)} loading={deleteLoading} title="Delete">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onDeleteRule(rule.id, rule.name)}
+                          loading={deleteLoading}
+                          title="Delete"
+                        >
                           <Trash2 className="w-4 h-4 text-red-500" />
                         </Button>
                       </div>
@@ -966,7 +1109,9 @@ const VPNRulesTab: React.FC<VPNRulesTabProps> = ({
                 <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-900/30 dark:to-indigo-900/30 flex items-center justify-center mx-auto mb-4">
                   <Network className="w-8 h-8 text-purple-600 dark:text-purple-400" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">VPN Inter-Network Rules</h3>
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                  VPN Inter-Network Rules
+                </h3>
                 <p className="text-gray-600 dark:text-gray-400">
                   Define how traffic flows between VPN networks
                 </p>
@@ -979,9 +1124,13 @@ const VPNRulesTab: React.FC<VPNRulesTabProps> = ({
                   What are VPN Rules?
                 </h4>
                 <p className="text-blue-800 dark:text-blue-200 text-sm leading-relaxed">
-                  VPN rules control the server's <code className="bg-blue-100 dark:bg-blue-800 px-1.5 py-0.5 rounded text-xs font-mono">FORWARD</code> chain. 
-                  These rules determine whether traffic can pass between different VPN networks. 
-                  Since all VPN traffic flows through the server, these rules provide complete control over inter-network communication.
+                  VPN rules control the server's{' '}
+                  <code className="bg-blue-100 dark:bg-blue-800 px-1.5 py-0.5 rounded text-xs font-mono">
+                    FORWARD
+                  </code>{' '}
+                  chain. These rules determine whether traffic can pass between different VPN
+                  networks. Since all VPN traffic flows through the server, these rules provide
+                  complete control over inter-network communication.
                 </p>
               </div>
 
@@ -1027,7 +1176,9 @@ const VPNRulesTab: React.FC<VPNRulesTabProps> = ({
                       <Server className="w-6 h-6 text-purple-600" />
                     </div>
                     <span className="text-gray-600 dark:text-gray-400">VPN Server</span>
-                    <div className="text-xs text-purple-600 dark:text-purple-400 mt-1">FORWARD rules</div>
+                    <div className="text-xs text-purple-600 dark:text-purple-400 mt-1">
+                      FORWARD rules
+                    </div>
                   </div>
                   <ArrowRight className="w-5 h-5 text-gray-400" />
                   <div className="text-center">
@@ -1038,7 +1189,7 @@ const VPNRulesTab: React.FC<VPNRulesTabProps> = ({
                   </div>
                 </div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  All VPN traffic flows through the server. VPN rules are applied on the server and 
+                  All VPN traffic flows through the server. VPN rules are applied on the server and
                   determine which traffic can be forwarded.
                 </p>
               </div>
@@ -1050,30 +1201,55 @@ const VPNRulesTab: React.FC<VPNRulesTabProps> = ({
                   Important Note
                 </h5>
                 <p className="text-sm text-amber-800 dark:text-amber-200">
-                  When you create a VPN rule, the source node's <code className="bg-amber-100 dark:bg-amber-800 px-1.5 py-0.5 rounded text-xs font-mono">AllowedIPs</code> configuration 
-                  is automatically updated. However, existing connected devices may need to reload their configuration.
+                  When you create a VPN rule, the source node's{' '}
+                  <code className="bg-amber-100 dark:bg-amber-800 px-1.5 py-0.5 rounded text-xs font-mono">
+                    AllowedIPs
+                  </code>{' '}
+                  configuration is automatically updated. However, existing connected devices may
+                  need to reload their configuration.
                 </p>
               </div>
 
               {/* Quick Start */}
               <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-5">
-                <h4 className="font-semibold text-gray-900 dark:text-white mb-4">Getting Started</h4>
+                <h4 className="font-semibold text-gray-900 dark:text-white mb-4">
+                  Getting Started
+                </h4>
                 <ol className="space-y-3 text-sm">
                   <li className="flex items-start gap-3">
-                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xs font-bold">1</span>
-                    <span className="text-gray-600 dark:text-gray-400">Click the <strong className="text-gray-900 dark:text-white">"VPN Rule"</strong> button above</span>
+                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xs font-bold">
+                      1
+                    </span>
+                    <span className="text-gray-600 dark:text-gray-400">
+                      Click the{' '}
+                      <strong className="text-gray-900 dark:text-white">"VPN Rule"</strong> button
+                      above
+                    </span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xs font-bold">2</span>
-                    <span className="text-gray-600 dark:text-gray-400">Select source and destination network/node</span>
+                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xs font-bold">
+                      2
+                    </span>
+                    <span className="text-gray-600 dark:text-gray-400">
+                      Select source and destination network/node
+                    </span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xs font-bold">3</span>
-                    <span className="text-gray-600 dark:text-gray-400">Choose protocol and port (optional)</span>
+                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xs font-bold">
+                      3
+                    </span>
+                    <span className="text-gray-600 dark:text-gray-400">
+                      Choose protocol and port (optional)
+                    </span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xs font-bold">4</span>
-                    <span className="text-gray-600 dark:text-gray-400">Select action: <strong className="text-green-600">Accept</strong> (allow) or <strong className="text-red-600">Drop</strong> (block)</span>
+                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xs font-bold">
+                      4
+                    </span>
+                    <span className="text-gray-600 dark:text-gray-400">
+                      Select action: <strong className="text-green-600">Accept</strong> (allow) or{' '}
+                      <strong className="text-red-600">Drop</strong> (block)
+                    </span>
                   </li>
                 </ol>
               </div>
@@ -1082,45 +1258,40 @@ const VPNRulesTab: React.FC<VPNRulesTabProps> = ({
         )}
       </Card>
     </div>
-  );
-};
-
+  )
+}
 
 // Open Ports Tab Component
 interface OpenPortsTabProps {
-  openPorts: FirewallRule[];
-  onClosePort: (port: number, protocol: string, isProtected: boolean) => void;
-  closeLoading: boolean;
+  openPorts: FirewallRule[]
+  onClosePort: (port: number, protocol: string, isProtected: boolean) => void
+  closeLoading: boolean
 }
 
-const OpenPortsTab: React.FC<OpenPortsTabProps> = ({
-  openPorts,
-  onClosePort,
-  closeLoading,
-}) => {
+const OpenPortsTab: React.FC<OpenPortsTabProps> = ({ openPorts, onClosePort, closeLoading }) => {
   // Parse port number from rule - handles formats like "22", "dpt:22", "8000:9000"
   const parsePort = (portStr: string | undefined): number => {
-    if (!portStr || portStr === '-') return 0;
+    if (!portStr || portStr === '-') return 0
     // Extract first number from string (handles "dpt:22", "22", etc.)
-    const match = portStr.match(/(\d+)/);
-    return match ? parseInt(match[1], 10) : 0;
-  };
+    const match = portStr.match(/(\d+)/)
+    return match ? parseInt(match[1], 10) : 0
+  }
 
   // Handle close port with validation
   const handleClosePortClick = (rule: FirewallRule) => {
-    const port = parsePort(rule.port);
+    const port = parsePort(rule.port)
     if (port === 0) {
-      alert('Invalid port number');
-      return;
+      alert('Invalid port number')
+      return
     }
     // Ensure protocol is lowercase and valid for close port operation
-    let protocol = (rule.protocol || 'tcp').toLowerCase();
+    let protocol = (rule.protocol || 'tcp').toLowerCase()
     // If protocol is 'all' or 'icmp', default to 'both' for tcp/udp
     if (protocol === 'all' || protocol === 'icmp') {
-      protocol = 'both';
+      protocol = 'both'
     }
-    onClosePort(port, protocol, rule.protected);
-  };
+    onClosePort(port, protocol, rule.protected)
+  }
 
   return (
     <div className="space-y-4">
@@ -1131,17 +1302,32 @@ const OpenPortsTab: React.FC<OpenPortsTabProps> = ({
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
               <thead className="bg-gray-50 dark:bg-gray-800">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Port</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Protocol</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Source</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Interface</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Port
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Protocol
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Source
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Interface
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Status
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                 {openPorts.map((rule, index) => (
-                  <tr key={`${rule.chain}-${rule.number}-${index}`} className={rule.protected ? 'bg-yellow-50 dark:bg-yellow-900/10' : ''}>
+                  <tr
+                    key={`${rule.chain}-${rule.number}-${index}`}
+                    className={rule.protected ? 'bg-yellow-50 dark:bg-yellow-900/10' : ''}
+                  >
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center">
@@ -1209,29 +1395,24 @@ const OpenPortsTab: React.FC<OpenPortsTabProps> = ({
           <div>
             <h4 className="font-medium text-blue-700 dark:text-blue-300">Protected Ports</h4>
             <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
-              SSH (22), WireGuard (51820+) and Admin API ports are protected and cannot be closed. 
+              SSH (22), WireGuard (51820+) and Admin API ports are protected and cannot be closed.
               Closing these ports could disconnect you from the server.
             </p>
           </div>
         </div>
       </Card>
     </div>
-  );
-};
-
+  )
+}
 
 // Blocked IPs Tab Component
 interface BlockedIPsTabProps {
-  blockedIPs: FirewallRule[];
-  onUnblock: (chain: string, lineNumber: number) => void;
-  unblockLoading: boolean;
+  blockedIPs: FirewallRule[]
+  onUnblock: (chain: string, lineNumber: number) => void
+  unblockLoading: boolean
 }
 
-const BlockedIPsTab: React.FC<BlockedIPsTabProps> = ({
-  blockedIPs,
-  onUnblock,
-  unblockLoading,
-}) => {
+const BlockedIPsTab: React.FC<BlockedIPsTabProps> = ({ blockedIPs, onUnblock, unblockLoading }) => {
   return (
     <div className="space-y-4">
       {/* Blocked IPs List */}
@@ -1282,20 +1463,19 @@ const BlockedIPsTab: React.FC<BlockedIPsTabProps> = ({
         )}
       </Card>
     </div>
-  );
-};
-
+  )
+}
 
 // VPN Rule Modal Component
 interface VPNRuleModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  form: VPNFirewallRuleRequest;
-  setForm: React.Dispatch<React.SetStateAction<VPNFirewallRuleRequest>>;
-  onSubmit: (e: React.FormEvent) => void;
-  isEditing: boolean;
-  loading: boolean;
-  networks: NetworkType[];
+  isOpen: boolean
+  onClose: () => void
+  form: VPNFirewallRuleRequest
+  setForm: React.Dispatch<React.SetStateAction<VPNFirewallRuleRequest>>
+  onSubmit: (e: React.FormEvent) => void
+  isEditing: boolean
+  loading: boolean
+  networks: NetworkType[]
 }
 
 const VPNRuleModal: React.FC<VPNRuleModalProps> = ({
@@ -1308,48 +1488,59 @@ const VPNRuleModal: React.FC<VPNRuleModalProps> = ({
   loading,
   networks,
 }) => {
-  const [sourceNodes, setSourceNodes] = useState<Node[]>([]);
-  const [destNodes, setDestNodes] = useState<Node[]>([]);
+  const [sourceNodes, setSourceNodes] = useState<Node[]>([])
+  const [destNodes, setDestNodes] = useState<Node[]>([])
 
   // Fetch nodes when network changes
   React.useEffect(() => {
     if (form.source_type === 'node' && form.source_network_id) {
-      api.getNodes(form.source_network_id).then(setSourceNodes).catch(() => setSourceNodes([]));
+      api
+        .getNodes(form.source_network_id)
+        .then(setSourceNodes)
+        .catch(() => setSourceNodes([]))
     } else {
-      setSourceNodes([]);
+      setSourceNodes([])
     }
-  }, [form.source_network_id, form.source_type]);
+  }, [form.source_network_id, form.source_type])
 
   React.useEffect(() => {
     if (form.dest_type === 'node' && form.dest_network_id) {
-      api.getNodes(form.dest_network_id).then(setDestNodes).catch(() => setDestNodes([]));
+      api
+        .getNodes(form.dest_network_id)
+        .then(setDestNodes)
+        .catch(() => setDestNodes([]))
     } else {
-      setDestNodes([]);
+      setDestNodes([])
     }
-  }, [form.dest_network_id, form.dest_type]);
+  }, [form.dest_network_id, form.dest_type])
 
   const endpointTypes: { value: VPNEndpointType; label: string }[] = [
     { value: 'any', label: 'Any' },
     { value: 'network', label: 'Network' },
     { value: 'node', label: 'Node' },
     { value: 'custom', label: 'Custom IP' },
-  ];
+  ]
 
   const protocols: { value: VPNFirewallProtocol; label: string }[] = [
     { value: 'all', label: 'All' },
     { value: 'tcp', label: 'TCP' },
     { value: 'udp', label: 'UDP' },
     { value: 'icmp', label: 'ICMP' },
-  ];
+  ]
 
   const actions: { value: VPNFirewallAction; label: string }[] = [
     { value: 'accept', label: 'Accept' },
     { value: 'drop', label: 'Drop' },
     { value: 'reject', label: 'Reject' },
-  ];
+  ]
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={isEditing ? 'Edit VPN Rule' : 'Add VPN Rule'} size="lg">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={isEditing ? 'Edit VPN Rule' : 'Add VPN Rule'}
+      size="lg"
+    >
       <form onSubmit={onSubmit} className="space-y-4">
         {/* Basic Info */}
         <div className="grid grid-cols-2 gap-4">
@@ -1399,10 +1590,22 @@ const VPNRuleModal: React.FC<VPNRuleModalProps> = ({
               <label className="block text-sm font-medium mb-1">Type</label>
               <select
                 value={form.source_type}
-                onChange={(e) => setForm({ ...form, source_type: e.target.value as VPNEndpointType, source_network_id: undefined, source_node_id: undefined, source_ip: undefined })}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    source_type: e.target.value as VPNEndpointType,
+                    source_network_id: undefined,
+                    source_node_id: undefined,
+                    source_ip: undefined,
+                  })
+                }
                 className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
               >
-                {endpointTypes.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                {endpointTypes.map((t) => (
+                  <option key={t.value} value={t.value}>
+                    {t.label}
+                  </option>
+                ))}
               </select>
             </div>
             {form.source_type === 'network' && (
@@ -1410,11 +1613,17 @@ const VPNRuleModal: React.FC<VPNRuleModalProps> = ({
                 <label className="block text-sm font-medium mb-1">Network</label>
                 <select
                   value={form.source_network_id || ''}
-                  onChange={(e) => setForm({ ...form, source_network_id: e.target.value || undefined })}
+                  onChange={(e) =>
+                    setForm({ ...form, source_network_id: e.target.value || undefined })
+                  }
                   className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
                 >
                   <option value="">Select Network</option>
-                  {networks.map(n => <option key={n.id} value={n.id}>{n.name} ({n.cidr})</option>)}
+                  {networks.map((n) => (
+                    <option key={n.id} value={n.id}>
+                      {n.name} ({n.cidr})
+                    </option>
+                  ))}
                 </select>
               </div>
             )}
@@ -1424,23 +1633,39 @@ const VPNRuleModal: React.FC<VPNRuleModalProps> = ({
                   <label className="block text-sm font-medium mb-1">Network</label>
                   <select
                     value={form.source_network_id || ''}
-                    onChange={(e) => setForm({ ...form, source_network_id: e.target.value || undefined, source_node_id: undefined })}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        source_network_id: e.target.value || undefined,
+                        source_node_id: undefined,
+                      })
+                    }
                     className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
                   >
                     <option value="">Select Network</option>
-                    {networks.map(n => <option key={n.id} value={n.id}>{n.name}</option>)}
+                    {networks.map((n) => (
+                      <option key={n.id} value={n.id}>
+                        {n.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 <div className="col-span-2">
                   <label className="block text-sm font-medium mb-1">Node</label>
                   <select
                     value={form.source_node_id || ''}
-                    onChange={(e) => setForm({ ...form, source_node_id: e.target.value || undefined })}
+                    onChange={(e) =>
+                      setForm({ ...form, source_node_id: e.target.value || undefined })
+                    }
                     className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
                     disabled={!form.source_network_id}
                   >
                     <option value="">Select Node</option>
-                    {sourceNodes.map(n => <option key={n.id} value={n.id}>{n.name} ({n.virtual_ip})</option>)}
+                    {sourceNodes.map((n) => (
+                      <option key={n.id} value={n.id}>
+                        {n.name} ({n.virtual_ip})
+                      </option>
+                    ))}
                   </select>
                 </div>
               </>
@@ -1470,10 +1695,22 @@ const VPNRuleModal: React.FC<VPNRuleModalProps> = ({
               <label className="block text-sm font-medium mb-1">Type</label>
               <select
                 value={form.dest_type}
-                onChange={(e) => setForm({ ...form, dest_type: e.target.value as VPNEndpointType, dest_network_id: undefined, dest_node_id: undefined, dest_ip: undefined })}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    dest_type: e.target.value as VPNEndpointType,
+                    dest_network_id: undefined,
+                    dest_node_id: undefined,
+                    dest_ip: undefined,
+                  })
+                }
                 className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
               >
-                {endpointTypes.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                {endpointTypes.map((t) => (
+                  <option key={t.value} value={t.value}>
+                    {t.label}
+                  </option>
+                ))}
               </select>
             </div>
             {form.dest_type === 'network' && (
@@ -1481,11 +1718,17 @@ const VPNRuleModal: React.FC<VPNRuleModalProps> = ({
                 <label className="block text-sm font-medium mb-1">Network</label>
                 <select
                   value={form.dest_network_id || ''}
-                  onChange={(e) => setForm({ ...form, dest_network_id: e.target.value || undefined })}
+                  onChange={(e) =>
+                    setForm({ ...form, dest_network_id: e.target.value || undefined })
+                  }
                   className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
                 >
                   <option value="">Select Network</option>
-                  {networks.map(n => <option key={n.id} value={n.id}>{n.name} ({n.cidr})</option>)}
+                  {networks.map((n) => (
+                    <option key={n.id} value={n.id}>
+                      {n.name} ({n.cidr})
+                    </option>
+                  ))}
                 </select>
               </div>
             )}
@@ -1495,23 +1738,39 @@ const VPNRuleModal: React.FC<VPNRuleModalProps> = ({
                   <label className="block text-sm font-medium mb-1">Network</label>
                   <select
                     value={form.dest_network_id || ''}
-                    onChange={(e) => setForm({ ...form, dest_network_id: e.target.value || undefined, dest_node_id: undefined })}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        dest_network_id: e.target.value || undefined,
+                        dest_node_id: undefined,
+                      })
+                    }
                     className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
                   >
                     <option value="">Select Network</option>
-                    {networks.map(n => <option key={n.id} value={n.id}>{n.name}</option>)}
+                    {networks.map((n) => (
+                      <option key={n.id} value={n.id}>
+                        {n.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 <div className="col-span-2">
                   <label className="block text-sm font-medium mb-1">Node</label>
                   <select
                     value={form.dest_node_id || ''}
-                    onChange={(e) => setForm({ ...form, dest_node_id: e.target.value || undefined })}
+                    onChange={(e) =>
+                      setForm({ ...form, dest_node_id: e.target.value || undefined })
+                    }
                     className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
                     disabled={!form.dest_network_id}
                   >
                     <option value="">Select Node</option>
-                    {destNodes.map(n => <option key={n.id} value={n.id}>{n.name} ({n.virtual_ip})</option>)}
+                    {destNodes.map((n) => (
+                      <option key={n.id} value={n.id}>
+                        {n.name} ({n.virtual_ip})
+                      </option>
+                    ))}
                   </select>
                 </div>
               </>
@@ -1537,10 +1796,16 @@ const VPNRuleModal: React.FC<VPNRuleModalProps> = ({
             <label className="block text-sm font-medium mb-1">Protocol</label>
             <select
               value={form.protocol}
-              onChange={(e) => setForm({ ...form, protocol: e.target.value as VPNFirewallProtocol })}
+              onChange={(e) =>
+                setForm({ ...form, protocol: e.target.value as VPNFirewallProtocol })
+              }
               className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
             >
-              {protocols.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+              {protocols.map((p) => (
+                <option key={p.value} value={p.value}>
+                  {p.label}
+                </option>
+              ))}
             </select>
           </div>
           <div>
@@ -1561,7 +1826,11 @@ const VPNRuleModal: React.FC<VPNRuleModalProps> = ({
               onChange={(e) => setForm({ ...form, action: e.target.value as VPNFirewallAction })}
               className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
             >
-              {actions.map(a => <option key={a.value} value={a.value}>{a.label}</option>)}
+              {actions.map((a) => (
+                <option key={a.value} value={a.value}>
+                  {a.label}
+                </option>
+              ))}
             </select>
           </div>
         </div>
@@ -1575,17 +1844,21 @@ const VPNRuleModal: React.FC<VPNRuleModalProps> = ({
             onChange={(e) => setForm({ ...form, enabled: e.target.checked })}
             className="rounded"
           />
-          <label htmlFor="enabled" className="text-sm">Rule is enabled</label>
+          <label htmlFor="enabled" className="text-sm">
+            Rule is enabled
+          </label>
         </div>
 
         {/* Submit */}
         <div className="flex justify-end gap-2 pt-4 border-t dark:border-gray-700">
-          <Button variant="secondary" type="button" onClick={onClose}>Cancel</Button>
+          <Button variant="secondary" type="button" onClick={onClose}>
+            Cancel
+          </Button>
           <Button variant="primary" type="submit" loading={loading}>
             {isEditing ? 'Update Rule' : 'Create Rule'}
           </Button>
         </div>
       </form>
     </Modal>
-  );
-};
+  )
+}

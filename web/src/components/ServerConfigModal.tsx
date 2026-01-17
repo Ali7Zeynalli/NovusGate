@@ -1,20 +1,31 @@
-import React, { useState, useEffect } from 'react';
-import { Download, QrCode as QrIcon, X, Copy, Check, Monitor, Smartphone, Terminal, Box } from 'lucide-react';
-import { Button, Modal } from './ui';
-import { getAuthHeaders, api } from '../api/client';
+import {
+  Box,
+  Check,
+  Copy,
+  Download,
+  Monitor,
+  QrCode as QrIcon,
+  Smartphone,
+  Terminal,
+  X,
+} from 'lucide-react'
+import type React from 'react'
+import { useEffect, useState } from 'react'
+import { api, getAuthHeaders } from '../api/client'
+import { Button, Modal } from './ui'
 
 interface ServerConfigModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  nodeId: string;
-  nodeName: string;
+  isOpen: boolean
+  onClose: () => void
+  nodeId: string
+  nodeName: string
 }
 
 const InstallTab: React.FC<{
-  icon: React.ReactNode;
-  label: string;
-  active: boolean;
-  onClick: () => void;
+  icon: React.ReactNode
+  label: string
+  active: boolean
+  onClick: () => void
 }> = ({ icon, label, active, onClick }) => (
   <button
     onClick={onClick}
@@ -27,7 +38,7 @@ const InstallTab: React.FC<{
     {icon}
     {label}
   </button>
-);
+)
 
 export const ServerConfigModal: React.FC<ServerConfigModalProps> = ({
   isOpen,
@@ -35,82 +46,83 @@ export const ServerConfigModal: React.FC<ServerConfigModalProps> = ({
   nodeId,
   nodeName,
 }) => {
-  const [activeTab, setActiveTab] = useState<'general' | 'windows' | 'mac' | 'linux' | 'docker'>('general');
-  const [config, setConfig] = useState<string>('');
-  const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [copied, setCopied] = useState(false);
+  const [activeTab, setActiveTab] = useState<'general' | 'windows' | 'mac' | 'linux' | 'docker'>(
+    'general'
+  )
+  const [config, setConfig] = useState<string>('')
+  const [qrCodeUrl, setQrCodeUrl] = useState<string>('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     if (isOpen && nodeId) {
-      loadConfig();
-      setActiveTab('general');
+      loadConfig()
+      setActiveTab('general')
     }
-  }, [isOpen, nodeId]);
+  }, [isOpen, nodeId])
 
   const loadConfig = async () => {
-    setLoading(true);
-    setError('');
+    setLoading(true)
+    setError('')
     try {
       // Fetch Config Text
-      const text = await api.getNodeConfig(nodeId);
-      setConfig(text);
+      const text = await api.getNodeConfig(nodeId)
+      setConfig(text)
 
       // Fetch QR Code as base64 data URL (avoids blob URL security warning)
-      const blob = await api.getNodeQrCode(nodeId);
-      const reader = new FileReader();
+      const blob = await api.getNodeQrCode(nodeId)
+      const reader = new FileReader()
       reader.onloadend = () => {
-        setQrCodeUrl(reader.result as string);
-      };
-      reader.readAsDataURL(blob);
-
+        setQrCodeUrl(reader.result as string)
+      }
+      reader.readAsDataURL(blob)
     } catch (err: any) {
-      setError(err.message || 'Error loading configuration');
+      setError(err.message || 'Error loading configuration')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleDownload = () => {
-    const element = document.createElement('a');
+    const element = document.createElement('a')
     // Use data URL instead of blob URL to avoid security warning
-    const base64 = btoa(unescape(encodeURIComponent(config)));
-    element.href = `data:text/plain;base64,${base64}`;
-    element.download = `${nodeName.replace(/\s+/g, '-').toLowerCase()}.conf`;
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
-  };
+    const base64 = btoa(unescape(encodeURIComponent(config)))
+    element.href = `data:text/plain;base64,${base64}`
+    element.download = `${nodeName.replace(/\s+/g, '-').toLowerCase()}.conf`
+    document.body.appendChild(element)
+    element.click()
+    document.body.removeChild(element)
+  }
 
   const copyToClipboard = async (text: string) => {
     try {
       if (navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(text);
-        setCopied(true);
+        await navigator.clipboard.writeText(text)
+        setCopied(true)
       } else {
         // Fallback for non-secure contexts
-        const textArea = document.createElement("textarea");
-        textArea.value = text;
-        textArea.style.position = "fixed";
-        textArea.style.left = "-9999px";
-        textArea.style.top = "0";
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
+        const textArea = document.createElement('textarea')
+        textArea.value = text
+        textArea.style.position = 'fixed'
+        textArea.style.left = '-9999px'
+        textArea.style.top = '0'
+        document.body.appendChild(textArea)
+        textArea.focus()
+        textArea.select()
         try {
-          document.execCommand('copy');
-          setCopied(true);
+          document.execCommand('copy')
+          setCopied(true)
         } catch (err) {
-          console.error('Fallback: Oops, unable to copy', err);
+          console.error('Fallback: Oops, unable to copy', err)
         }
-        document.body.removeChild(textArea);
+        document.body.removeChild(textArea)
       }
     } catch (err) {
-      console.error('Failed to copy!', err);
+      console.error('Failed to copy!', err)
     }
-    setTimeout(() => setCopied(false), 2000);
-  };
+    setTimeout(() => setCopied(false), 2000)
+  }
 
   const renderContent = () => {
     switch (activeTab) {
@@ -135,7 +147,10 @@ export const ServerConfigModal: React.FC<ServerConfigModalProps> = ({
                 readOnly
                 value={config}
               />
-              <Button onClick={handleDownload} className="w-full flex items-center justify-center gap-2">
+              <Button
+                onClick={handleDownload}
+                className="w-full flex items-center justify-center gap-2"
+              >
                 <Download className="w-4 h-4" /> Download .conf
               </Button>
             </div>
@@ -143,11 +158,7 @@ export const ServerConfigModal: React.FC<ServerConfigModalProps> = ({
               <h3 className="text-sm font-medium text-gray-900 dark:text-white">Mobile Scan</h3>
               {qrCodeUrl ? (
                 <div className="bg-white p-3 rounded-lg shadow-sm">
-                  <img 
-                    src={qrCodeUrl} 
-                    alt="WireGuard QR Code" 
-                    className="w-48 h-48"
-                  />
+                  <img src={qrCodeUrl} alt="WireGuard QR Code" className="w-48 h-48" />
                 </div>
               ) : (
                 <div className="w-48 h-48 bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-400 rounded-lg">
@@ -159,19 +170,21 @@ export const ServerConfigModal: React.FC<ServerConfigModalProps> = ({
               </p>
             </div>
           </div>
-        );
+        )
 
       case 'windows':
         return (
           <div className="space-y-4">
             <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-              <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">1. Install WireGuard</h4>
+              <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
+                1. Install WireGuard
+              </h4>
               <p className="text-sm text-blue-800 dark:text-blue-200 mb-3">
                 Download and install the official WireGuard client for Windows.
               </p>
-              <a 
-                href="https://download.wireguard.com/windows-client/wireguard-installer.exe" 
-                target="_blank" 
+              <a
+                href="https://download.wireguard.com/windows-client/wireguard-installer.exe"
+                target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition-colors"
               >
@@ -182,25 +195,33 @@ export const ServerConfigModal: React.FC<ServerConfigModalProps> = ({
               <h4 className="font-semibold text-gray-900 dark:text-white">2. Import Config</h4>
               <ol className="list-decimal list-inside text-sm text-gray-600 dark:text-gray-300 space-y-1">
                 <li>Open WireGuard application.</li>
-                <li>Click on <strong>Import tunnel(s) from file</strong>.</li>
-                <li>Select the downloaded <code>.conf</code> file.</li>
-                <li>Click <strong>Activate</strong> to connect.</li>
+                <li>
+                  Click on <strong>Import tunnel(s) from file</strong>.
+                </li>
+                <li>
+                  Select the downloaded <code>.conf</code> file.
+                </li>
+                <li>
+                  Click <strong>Activate</strong> to connect.
+                </li>
               </ol>
             </div>
           </div>
-        );
+        )
 
       case 'mac':
         return (
           <div className="space-y-4">
-             <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-              <h4 className="font-semibold text-gray-900 dark:text-white mb-2">1. Install WireGuard</h4>
+            <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+              <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
+                1. Install WireGuard
+              </h4>
               <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
                 Download WireGuard from the Mac App Store.
               </p>
-              <a 
-                href="https://apps.apple.com/us/app/wireguard/id1451685025?mt=12" 
-                target="_blank" 
+              <a
+                href="https://apps.apple.com/us/app/wireguard/id1451685025?mt=12"
+                target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 hover:bg-black text-white rounded-md text-sm font-medium transition-colors"
               >
@@ -211,16 +232,22 @@ export const ServerConfigModal: React.FC<ServerConfigModalProps> = ({
               <h4 className="font-semibold text-gray-900 dark:text-white">2. Import Config</h4>
               <ol className="list-decimal list-inside text-sm text-gray-600 dark:text-gray-300 space-y-1">
                 <li>Open WireGuard from your Applications.</li>
-                <li>Click <strong>Import tunnel(s) from file</strong> in the menu bar.</li>
-                <li>Select the downloaded <code>.conf</code> file.</li>
-                <li>Click <strong>Activate</strong> to connect.</li>
+                <li>
+                  Click <strong>Import tunnel(s) from file</strong> in the menu bar.
+                </li>
+                <li>
+                  Select the downloaded <code>.conf</code> file.
+                </li>
+                <li>
+                  Click <strong>Activate</strong> to connect.
+                </li>
               </ol>
             </div>
           </div>
-        );
+        )
 
-      case 'linux':
-        const installCommand = `curl -sSfLk ${window.location.origin}/api/v1/nodes/${nodeId}/install.sh | sudo bash`;
+      case 'linux': {
+        const installCommand = `curl -sSfLk ${window.location.origin}/api/v1/nodes/${nodeId}/install.sh | sudo bash`
         return (
           <div className="space-y-4">
             <div className="p-4 bg-gray-900 border border-gray-800 rounded-lg">
@@ -234,50 +261,54 @@ export const ServerConfigModal: React.FC<ServerConfigModalProps> = ({
                   {copied ? 'Copied' : 'Copy'}
                 </button>
               </div>
-              <code className="text-xs text-green-400 break-all">
-                {installCommand}
-              </code>
+              <code className="text-xs text-green-400 break-all">{installCommand}</code>
               <p className="text-xs text-yellow-500 mt-2">
                 ⚠️ Run this from a machine that already has VPN access to the server
               </p>
             </div>
 
             <div className="space-y-4">
-               <div className="p-4 bg-gray-900 text-gray-300 rounded-lg font-mono text-sm overflow-x-auto">
-                 <p className="text-gray-500 mb-2"># Manual Install (Ubuntu/Debian)</p>
-                 <p className="mb-4 text-green-400">sudo apt update && sudo apt install -y wireguard</p>
-  
-                 <p className="text-gray-500 mb-2"># Save Config</p>
-                 <p className="mb-4 text-green-400">sudo nano /etc/wireguard/wg0.conf</p>
-                 <p className="text-gray-500 italic mb-4 text-xs">(Paste the config content here)</p>
-  
-                 <p className="text-gray-500 mb-2"># Start VPN</p>
-                 <p className="text-green-400">sudo wg-quick up wg0</p>
+              <div className="p-4 bg-gray-900 text-gray-300 rounded-lg font-mono text-sm overflow-x-auto">
+                <p className="text-gray-500 mb-2"># Manual Install (Ubuntu/Debian)</p>
+                <p className="mb-4 text-green-400">
+                  sudo apt update && sudo apt install -y wireguard
+                </p>
+
+                <p className="text-gray-500 mb-2"># Save Config</p>
+                <p className="mb-4 text-green-400">sudo nano /etc/wireguard/wg0.conf</p>
+                <p className="text-gray-500 italic mb-4 text-xs">(Paste the config content here)</p>
+
+                <p className="text-gray-500 mb-2"># Start VPN</p>
+                <p className="text-green-400">sudo wg-quick up wg0</p>
               </div>
             </div>
           </div>
-        );
+        )
+      }
 
       case 'docker':
         return (
           <div className="space-y-4">
             <p className="text-sm text-gray-600 dark:text-gray-300">
-              You can run a WireGuard client easily using Docker. Replace <code>/path/to/wg0.conf</code> with your config path.
+              You can run a WireGuard client easily using Docker. Replace{' '}
+              <code>/path/to/wg0.conf</code> with your config path.
             </p>
             <div className="p-4 bg-gray-900 text-gray-300 rounded-lg font-mono text-sm overflow-x-auto relative group">
-              <button 
-                onClick={() => copyToClipboard(`docker run -d \\
+              <button
+                onClick={() =>
+                  copyToClipboard(`docker run -d \\
   --name=wireguard-client \\
   --cap-add=NET_ADMIN \\
   --cap-add=SYS_MODULE \\
   -v /path/to/wg0.conf:/config/wg0.conf \\
-  linuxserver/wireguard`)}
+  linuxserver/wireguard`)
+                }
                 className="absolute top-2 right-2 p-1 text-gray-500 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity"
               >
                 <Copy className="w-4 h-4" />
               </button>
               <pre>
-{`docker run -d \\
+                {`docker run -d \\
   --name=wireguard-client \\
   --cap-add=NET_ADMIN \\
   --cap-add=SYS_MODULE \\
@@ -286,9 +317,9 @@ export const ServerConfigModal: React.FC<ServerConfigModalProps> = ({
               </pre>
             </div>
           </div>
-        );
+        )
     }
-  };
+  }
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={`Connect: ${nodeName}`}>
@@ -303,42 +334,40 @@ export const ServerConfigModal: React.FC<ServerConfigModalProps> = ({
           <>
             {/* Tabs */}
             <div className="flex overflow-x-auto border-b border-gray-200 dark:border-gray-700">
-              <InstallTab 
-                active={activeTab === 'general'} 
-                label="Config & QR" 
+              <InstallTab
+                active={activeTab === 'general'}
+                label="Config & QR"
                 icon={<QrIcon className="w-4 h-4" />}
-                onClick={() => setActiveTab('general')} 
+                onClick={() => setActiveTab('general')}
               />
-              <InstallTab 
-                active={activeTab === 'windows'} 
-                label="Windows" 
+              <InstallTab
+                active={activeTab === 'windows'}
+                label="Windows"
                 icon={<Monitor className="w-4 h-4" />}
-                onClick={() => setActiveTab('windows')} 
+                onClick={() => setActiveTab('windows')}
               />
-              <InstallTab 
-                active={activeTab === 'mac'} 
-                label="macOS" 
+              <InstallTab
+                active={activeTab === 'mac'}
+                label="macOS"
                 icon={<Monitor className="w-4 h-4" />}
-                onClick={() => setActiveTab('mac')} 
+                onClick={() => setActiveTab('mac')}
               />
-              <InstallTab 
-                active={activeTab === 'linux'} 
-                label="Linux" 
+              <InstallTab
+                active={activeTab === 'linux'}
+                label="Linux"
                 icon={<Terminal className="w-4 h-4" />}
-                onClick={() => setActiveTab('linux')} 
+                onClick={() => setActiveTab('linux')}
               />
-              <InstallTab 
-                active={activeTab === 'docker'} 
-                label="Docker" 
+              <InstallTab
+                active={activeTab === 'docker'}
+                label="Docker"
                 icon={<Box className="w-4 h-4" />}
-                onClick={() => setActiveTab('docker')} 
+                onClick={() => setActiveTab('docker')}
               />
             </div>
 
             {/* Tab Content */}
-            <div className="mt-4">
-              {renderContent()}
-            </div>
+            <div className="mt-4">{renderContent()}</div>
           </>
         )}
 
@@ -349,5 +378,5 @@ export const ServerConfigModal: React.FC<ServerConfigModalProps> = ({
         </div>
       </div>
     </Modal>
-  );
-};
+  )
+}

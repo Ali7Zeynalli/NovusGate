@@ -1,26 +1,27 @@
-import React, { useEffect } from 'react';
-import { Link, useLocation, Outlet } from 'react-router-dom';
-import { clsx } from 'clsx';
+import { clsx } from 'clsx'
 import {
+  Activity,
+  ChevronDown,
+  Flame,
+  LogOut,
+  Menu,
   Network,
   Server,
   Settings,
-  Menu,
-  X,
-  ChevronDown,
-  LogOut,
-  Activity,
   Shield,
-  Flame,
-} from 'lucide-react';
-import { useAppStore, useSidebarOpen } from '../store';
-import { useNetworks } from '../api/client';
-import { Branding } from './Branding';
+  X,
+} from 'lucide-react'
+import type React from 'react'
+import { useEffect } from 'react'
+import { Link, Outlet, useLocation } from 'react-router-dom'
+import { useNetworks } from '../api/client'
+import { useAppStore, useSidebarOpen } from '../store'
+import { Branding } from './Branding'
 
 interface NavItem {
-  name: string;
-  href: string;
-  icon: React.ReactNode;
+  name: string
+  href: string
+  icon: React.ReactNode
 }
 
 const navigation: NavItem[] = [
@@ -30,31 +31,28 @@ const navigation: NavItem[] = [
   { name: 'Firewall', href: '/firewall', icon: <Flame className="w-5 h-5" /> },
   { name: 'Fail2Ban', href: '/fail2ban', icon: <Shield className="w-5 h-5" /> },
   { name: 'Settings', href: '/settings', icon: <Settings className="w-5 h-5" /> },
-];
+]
 
 export const Layout: React.FC = () => {
-  const location = useLocation();
-  const sidebarOpen = useSidebarOpen();
-  const { toggleSidebar, currentNetworkId, setCurrentNetworkId } = useAppStore();
-  const { data: networks } = useNetworks();
+  const location = useLocation()
+  const sidebarOpen = useSidebarOpen()
+  const { toggleSidebar, currentNetworkId, setCurrentNetworkId } = useAppStore()
+  const { data: networks } = useNetworks()
 
   // Auto-select first network if none selected
   useEffect(() => {
     if (!currentNetworkId && networks && networks.length > 0) {
-      setCurrentNetworkId(networks[0].id);
+      setCurrentNetworkId(networks[0].id)
     }
-  }, [currentNetworkId, networks, setCurrentNetworkId]);
+  }, [currentNetworkId, networks, setCurrentNetworkId])
 
-  const currentNetwork = networks?.find((n) => n.id === currentNetworkId);
+  const currentNetwork = networks?.find((n) => n.id === currentNetworkId)
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
-          onClick={toggleSidebar}
-        />
+        <div className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={toggleSidebar} />
       )}
 
       {/* Sidebar */}
@@ -107,7 +105,7 @@ export const Layout: React.FC = () => {
         {/* Navigation */}
         <nav className="p-4 space-y-1 flex-1 overflow-y-auto">
           {navigation.map((item) => {
-            const isActive = location.pathname === item.href;
+            const isActive = location.pathname === item.href
             return (
               <Link
                 key={item.name}
@@ -122,7 +120,7 @@ export const Layout: React.FC = () => {
                 {item.icon}
                 {item.name}
               </Link>
-            );
+            )
           })}
         </nav>
 
@@ -132,9 +130,9 @@ export const Layout: React.FC = () => {
           <button
             onClick={() => {
               if (confirm('Are you sure you want to log out?')) {
-                localStorage.removeItem('auth_token');
-                localStorage.removeItem('auth_username');
-                window.location.href = '/login';
+                localStorage.removeItem('auth_token')
+                localStorage.removeItem('auth_username')
+                window.location.href = '/login'
               }
             }}
             className="flex items-center gap-3 px-3 py-2 w-full rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 transition-colors"
@@ -146,9 +144,7 @@ export const Layout: React.FC = () => {
 
         {/* Version */}
         <div className="px-4 pb-4">
-          <p className="text-xs text-gray-500 dark:text-gray-400">
-            NovusGate v0.1.0
-          </p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">NovusGate v0.1.0</p>
         </div>
       </aside>
 
@@ -157,41 +153,43 @@ export const Layout: React.FC = () => {
         {/* Top bar */}
         <header className="sticky top-0 z-30 h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between h-full px-4">
-            <button
-              onClick={toggleSidebar}
-              className="lg:hidden text-gray-500 hover:text-gray-700"
-            >
+            <button onClick={toggleSidebar} className="lg:hidden text-gray-500 hover:text-gray-700">
               <Menu className="w-6 h-6" />
             </button>
-            
-              <div className="flex items-center gap-4">
-               {/* VPN Status Indicator */}
-                {(() => {
-                  const isVpnSecure = window.location.hostname === '10.99.0.1';
-                  const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-                  
-                  if (isVpnSecure) {
-                    return (
-                       <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-medium">
-                         <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                         VPN Connected
-                       </div>
-                    );
-                  } else if (isLocalhost) {
-                    return (
-                        <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs font-medium">
-                         Dev Mode
-                       </div>
-                    );
-                  } else {
-                     return (
-                       <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-xs font-medium" title="You are accessing via Public IP. This is insecure.">
-                         <div className="w-2 h-2 rounded-full bg-red-500" />
-                         Insecure Connection
-                       </div>
-                    );
-                  }
-                })()}
+
+            <div className="flex items-center gap-4">
+              {/* VPN Status Indicator */}
+              {(() => {
+                const isVpnSecure = window.location.hostname === '10.99.0.1'
+                const isLocalhost =
+                  window.location.hostname === 'localhost' ||
+                  window.location.hostname === '127.0.0.1'
+
+                if (isVpnSecure) {
+                  return (
+                    <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-medium">
+                      <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                      VPN Connected
+                    </div>
+                  )
+                } else if (isLocalhost) {
+                  return (
+                    <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs font-medium">
+                      Dev Mode
+                    </div>
+                  )
+                } else {
+                  return (
+                    <div
+                      className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-xs font-medium"
+                      title="You are accessing via Public IP. This is insecure."
+                    >
+                      <div className="w-2 h-2 rounded-full bg-red-500" />
+                      Insecure Connection
+                    </div>
+                  )
+                }
+              })()}
 
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600 rounded-full" />
@@ -206,14 +204,14 @@ export const Layout: React.FC = () => {
         </main>
       </div>
     </div>
-  );
-};
+  )
+}
 
 // Page header component
 interface PageHeaderProps {
-  title: string;
-  description?: string;
-  actions?: React.ReactNode;
+  title: string
+  description?: string
+  actions?: React.ReactNode
 }
 
 export const PageHeader: React.FC<PageHeaderProps> = ({ title, description, actions }) => {
@@ -227,5 +225,5 @@ export const PageHeader: React.FC<PageHeaderProps> = ({ title, description, acti
       </div>
       {actions && <div className="flex items-center gap-3">{actions}</div>}
     </div>
-  );
-};
+  )
+}
