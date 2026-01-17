@@ -1,8 +1,8 @@
 import { Clock, Power, PowerOff } from 'lucide-react'
 import type React from 'react'
 import { useEffect, useMemo, useState } from 'react'
-import type { Node } from '../types'
-import { Button, Input, Modal, Select } from './ui'
+import type { Node } from '@/types'
+import { Button, Input, Modal, Select } from '@/components/ui'
 
 interface EditNodeModalProps {
   isOpen: boolean

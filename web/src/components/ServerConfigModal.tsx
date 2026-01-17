@@ -1,8 +1,8 @@
 import { Box, Check, Copy, Download, Monitor, QrCode as QrIcon, Terminal } from 'lucide-react'
 import type React from 'react'
 import { useCallback, useEffect, useState } from 'react'
-import { api } from '../api/client'
-import { Button, Modal } from './ui'
+import { api } from '@/api/client'
+import { Button, Modal } from '@/components/ui'
 
 interface ServerConfigModalProps {
   isOpen: boolean
@@ -18,6 +18,7 @@ const InstallTab: React.FC<{
   onClick: () => void
 }> = ({ icon, label, active, onClick }) => (
   <button
+    type="button"
     onClick={onClick}
     className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
       active

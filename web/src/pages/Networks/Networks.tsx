@@ -2,11 +2,11 @@ import { format } from 'date-fns'
 import { Activity, Network, Plus, Search, Shield, Trash2 } from 'lucide-react'
 import type React from 'react'
 import { useState } from 'react'
-import { useCreateNetwork, useDeleteNetwork, useNetworks } from '../api/client'
-import { PageHeader } from '../components/Layout'
-import type { CreateNetworkForm } from '../types'
+import { useCreateNetwork, useDeleteNetwork, useNetworks } from '@/api/client'
+import { PageHeader } from '@/components/Layout'
+import type { CreateNetworkForm } from '@/types'
 
-export const Networks: React.FC = () => {
+export const Networks = () => {
   const { data: networks, isLoading } = useNetworks()
   const createMutation = useCreateNetwork()
   const deleteMutation = useDeleteNetwork()
@@ -66,6 +66,7 @@ export const Networks: React.FC = () => {
         description="Manage your isolated VPN networks and Hub-and-Spoke configurations."
         actions={
           <button
+            type="button"
             onClick={() => setIsCreateModalOpen(true)}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
@@ -110,6 +111,7 @@ export const Networks: React.FC = () => {
                   </div>
                 </div>
                 <button
+                  type="button"
                   onClick={() => handleDelete(network.id, network.name)}
                   className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                   title="Delete Network"
@@ -176,6 +178,7 @@ export const Networks: React.FC = () => {
 
         {/* Add New Card (Empty State or Last Item) */}
         <button
+          type="button"
           onClick={() => setIsCreateModalOpen(true)}
           className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-xl hover:border-blue-500 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/10 transition-all group min-h-[250px]"
         >

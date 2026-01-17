@@ -1,7 +1,7 @@
 import { Clock } from 'lucide-react'
 import type React from 'react'
 import { useState } from 'react'
-import { Button, Input, Modal, Select } from './ui'
+import { Button, Input, Modal, Select } from '@/components/ui'
 
 interface CreateNodeModalProps {
   isOpen: boolean

@@ -22,14 +22,14 @@ import {
   useNode,
   useNodes,
   useUpdateNode,
-} from '../api/client'
-import { CreateNodeModal } from '../components/CreateNodeModal'
-import { EditNodeModal } from '../components/EditNodeModal'
-import { PageHeader } from '../components/Layout'
-import { ServerConfigModal } from '../components/ServerConfigModal'
-import { Badge, Button, Card, EmptyState, Modal, StatusIndicator, Table } from '../components/ui'
-import { useCurrentNetworkId } from '../store'
-import type { Node } from '../types'
+} from '@/api/client'
+import { CreateNodeModal } from '@/components/CreateNodeModal'
+import { EditNodeModal } from '@/components/EditNodeModal'
+import { PageHeader } from '@/components/Layout'
+import { ServerConfigModal } from '@/components/ServerConfigModal'
+import { Badge, Button, Card, EmptyState, Modal, StatusIndicator, Table } from '@/components/ui'
+import { useCurrentNetworkId } from '@/store'
+import type { Node } from '@/types'
 
 const formatBytes = (bytes: number = 0) => {
   if (bytes === 0) return '0 B'
@@ -210,6 +210,7 @@ export const NodesPage: React.FC = () => {
         }
         return (
           <button
+            type="button"
             onClick={(e) => {
               e.stopPropagation()
               setSelectedNode(node)
@@ -230,6 +231,7 @@ export const NodesPage: React.FC = () => {
       render: (node: Node) => (
         <div className="flex items-center gap-1">
           <button
+            type="button"
             onClick={(e) => {
               e.stopPropagation()
               setSelectedNode(node)
@@ -241,6 +243,7 @@ export const NodesPage: React.FC = () => {
             <Pencil className="w-4 h-4" />
           </button>
           <button
+            type="button"
             onClick={(e) => {
               e.stopPropagation()
               setSelectedNode(node)
@@ -643,6 +646,7 @@ export const NodeDetailPage: React.FC = () => {
                   {node.public_key}
                 </code>
                 <button
+                  type="button"
                   onClick={() => copyToClipboard(node.public_key)}
                   className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                   title="Copy Public Key"

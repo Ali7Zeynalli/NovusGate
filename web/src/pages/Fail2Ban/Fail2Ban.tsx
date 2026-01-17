@@ -19,9 +19,10 @@ import {
   XCircle,
 } from 'lucide-react'
 import React, { useState } from 'react'
-import { api, useFail2BanLogs, useFail2BanStatus, useUnbanIP } from '../api/client'
-import { PageHeader } from '../components/Layout'
-import { Badge, Button, Card } from '../components/ui'
+import { api, useFail2BanLogs, useFail2BanStatus, useUnbanIP } from '@/api/client'
+import { PageHeader } from '@/components/Layout'
+import { Badge, Button, Card } from '@/components/ui'
+import { formatBantime } from './formatBantime'
 
 // Hooks
 const useManualBan = () => {
@@ -120,10 +121,17 @@ interface HistoryEntry {
   raw: string
 }
 
-export const Fail2BanPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<
-    'overview' | 'banned' | 'whitelist' | 'settings' | 'permanent' | 'history' | 'logs'
-  >('overview')
+type ActiveTabProps =
+  | 'overview'
+  | 'banned'
+  | 'whitelist'
+  | 'settings'
+  | 'permanent'
+  | 'history'
+  | 'logs'
+
+export const Fail2BanPage = () => {
+  const [activeTab, setActiveTab] = useState<ActiveTabProps>('overview')
   const [selectedJail, setSelectedJail] = useState<string>('sshd')
   const [showBanModal, setShowBanModal] = useState(false)
   const [banForm, setBanForm] = useState({ ip: '', permanent: false })
@@ -171,15 +179,6 @@ export const Fail2BanPage: React.FC = () => {
       })
     }
   }, [jailSettings])
-
-  const formatBantime = (s: string) => {
-    const n = parseInt(s, 10)
-    if (n === -1) return 'Permanent'
-    if (n >= 86400) return `${Math.floor(n / 86400)} days`
-    if (n >= 3600) return `${Math.floor(n / 3600)} hours`
-    if (n >= 60) return `${Math.floor(n / 60)} min`
-    return `${n} sec`
-  }
 
   const currentJail = status?.jails?.find((j: JailData) => j.name === selectedJail)
 
@@ -283,6 +282,7 @@ export const Fail2BanPage: React.FC = () => {
         {tabs.map((tab) => (
           <button
             key={tab.id}
+            type="button"
             onClick={() => setActiveTab(tab.id)}
             className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md whitespace-nowrap transition-colors ${
               activeTab === tab.id

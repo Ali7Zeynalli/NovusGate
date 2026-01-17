@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { WebSocketEvent } from '../types'
+import type { WebSocketEvent } from '@/types'
 
 interface AppState {
   // Current network

@@ -14,8 +14,8 @@ import {
 import type React from 'react'
 import { useEffect } from 'react'
 import { Link, Outlet, useLocation } from 'react-router-dom'
-import { useNetworks } from '../api/client'
-import { useAppStore, useSidebarOpen } from '../store'
+import { useNetworks } from '@/api/client'
+import { useAppStore, useSidebarOpen } from '@/store'
 import { Branding } from './Branding'
 
 interface NavItem {

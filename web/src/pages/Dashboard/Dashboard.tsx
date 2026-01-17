@@ -15,9 +15,10 @@ import {
 } from 'lucide-react'
 import type React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useStatsOverview, useSystemInfo } from '../api/client'
-import { PageHeader } from '../components/Layout'
-import { Badge, Button, Card, EmptyState } from '../components/ui'
+import { useStatsOverview, useSystemInfo } from '@/api/client'
+import { PageHeader } from '@/components/Layout'
+import { Badge, Button, Card, EmptyState } from '@/components/ui'
+import { ProgressBar } from '@/components/ProgressBar'
 
 // Format bytes to human readable
 const formatBytes = (bytes: number = 0): string => {
@@ -36,32 +37,6 @@ const formatUptime = (seconds: number): string => {
   if (days > 0) return `${days}d ${hours}h`
   if (hours > 0) return `${hours}h ${mins}m`
   return `${mins}m`
-}
-
-// Progress bar component
-const ProgressBar: React.FC<{ value: number; max: number; color: string; label?: string }> = ({
-  value,
-  max,
-  color,
-  label,
-}) => {
-  const percentage = max > 0 ? Math.min((value / max) * 100, 100) : 0
-  return (
-    <div>
-      {label && (
-        <div className="flex justify-between text-xs mb-1">
-          <span className="text-gray-500">{label}</span>
-          <span className="text-gray-700 dark:text-gray-300">{percentage.toFixed(1)}%</span>
-        </div>
-      )}
-      <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-        <div
-          className={`h-full ${color} transition-all duration-500`}
-          style={{ width: `${percentage}%` }}
-        />
-      </div>
-    </div>
-  )
 }
 
 export const DashboardPage: React.FC = () => {
