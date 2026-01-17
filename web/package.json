@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
+    "lint": "biome check .",
+    "fix": "biome check --write .",
+    "format": "biome check --write ."
   },
   "dependencies": {
     "@headlessui/react": "^2.2.9",
