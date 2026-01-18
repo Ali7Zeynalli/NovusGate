@@ -6,7 +6,7 @@
 
 ## Installation
 
-*Note: We highly recommend using the **NovusGate Installer** for automatic deployment.*
+*Note: We highly recommend using the **NovusGate Center** for automatic deployment.*
 
 ### Docker Deployment (Manual)
 

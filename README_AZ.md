@@ -229,7 +229,7 @@ WireGuard interfeyslərini, PostgreSQL verilənlər bazasını idarə edir və R
 
 ---
 
-### 3. Installer (Quraşdırıcı)
+### 3. NovusGate Center (İdarəetmə Mərkəzi)
 📁 `./installer`
 
 Linux serverlərində SSH vasitəsilə yerləşdirməni sadələşdirmək üçün müstəqil **Node.js** aləti.
@@ -260,7 +260,7 @@ Linux serverlərində SSH vasitəsilə yerləşdirməni sadələşdirmək üçü
 
 ### Quraşdırma Prosesi (Addım-Addım)
 
-> **Qeyd:** Bu proses **NovusGate Installer** (Quraşdırma Paneli) -ni işə salır. Bu panel vasitəsilə siz serveri, məlumat bazasını və VPN şəbəkəsini asanlıqla quraşdıra bilərsiniz.
+> **Qeyd:** Bu proses **NovusGate Center** (İdarəetmə Paneli) -ni işə salır. Bu panel vasitəsilə siz serveri, məlumat bazasını və VPN şəbəkəsini asanlıqla quraşdıra bilərsiniz.
 
 #### Addım 1: Repozitoriyanı Klonlayın
 
@@ -269,14 +269,14 @@ git clone https://github.com/Ali7Zeynalli/NovusGate.git
 cd NovusGate
 ```
 
-#### Addım 2: Installer-i Başladın
+#### Addım 2: NovusGate Center-i Başladın
 
 ```bash
-cd installer
+cd "NovusGate Center"
 docker-compose up -d --build
 ```
 
-#### Addım 3: Installer Veb İnterfeysini Açın
+#### Addım 3: NovusGate Center Veb İnterfeysini Açın
 
 Brauzerdə bu ünvanı açın:
 ```
@@ -379,9 +379,9 @@ Dashboard-a daxil olduqdan sonra edə bilərsiniz:
 
 ---
 
-### Texniki Detallar: Installer Nə Edir?
+### Texniki Detallar: NovusGate Center Nə Edir?
 
-Installer uzaq Linux serverinizdə quraşdırmanı avtomatlaşdırır. Arxa planda baş verən proseslər bunlardır:
+NovusGate Center uzaq Linux serverinizdə quraşdırmanı avtomatlaşdırır. Arxa planda baş verən proseslər bunlardır:
 
 1.  **Sistem Yeniləmələri**: Paketlərin təzə olduğundan əmin olmaq üçün `apt-get update` icra edir.
 2.  **Asılılıqlar**: `docker`, `docker-compose`, `wireguard` və `fail2ban` quraşdırır.
@@ -571,7 +571,7 @@ Dashboard-da **Firewall** səhifəsindən daxil olun.
   <img src="web/public/photo/web/12.png" alt="Web 12" width="45%">
 </div>
 
-### Installer (Quraşdırıcı)
+### NovusGate Center (İdarəetmə Mərkəzi)
 <div style="display: flex; flex-wrap: wrap; gap: 10px;">
   <img src="web/public/photo/installer/0.png" alt="Installer 0" width="45%">
   <img src="web/public/photo/installer/1.png" alt="Installer 1" width="45%">

@@ -229,7 +229,7 @@ Administrative interface built with **React**, **TypeScript**, and **Tailwind CS
 
 ---
 
-### 3. Installer
+### 3. NovusGate Center
 📁 `./installer`
 
 A standalone **Node.js** tool that simplifies deployment on Linux servers via SSH.
@@ -261,7 +261,7 @@ A standalone **Node.js** tool that simplifies deployment on Linux servers via SS
 
 ### Installation Process (Step-by-Step)
 
-> **Note:** This process launches the **NovusGate Installer**, a web-based wizard that will guide you through setting up the server, database, and VPN configurations.
+> **Note:** This process launches the **NovusGate Center**, a web-based wizard that will guide you through setting up the server, database, and VPN configurations.
 
 #### Step 1: Clone the Repository
 
@@ -270,14 +270,14 @@ git clone https://github.com/Ali7Zeynalli/NovusGate.git
 cd NovusGate
 ```
 
-#### Step 2: Start the Installer
+#### Step 2: Start NovusGate Center
 
 ```bash
-cd installer
+cd "NovusGate Center"
 docker-compose up -d --build
 ```
 
-#### Step 3: Open Installer Web Interface
+#### Step 3: Open NovusGate Center Web Interface
 
 Open your browser and go to:
 ```
@@ -380,7 +380,7 @@ After accessing the dashboard, you can:
 
 ---
 
-### Technical Details: What does the Installer do?
+### Technical Details: What does NovusGate Center do?
 
 The installer automates the setup on your remote Linux server. Here is exactly what happens under the hood:
 
@@ -572,7 +572,7 @@ Access via **Firewall** page in the dashboard.
   <img src="web/public/photo/web/12.png" alt="Web 12" width="45%">
 </div>
 
-### Installer Interface
+### NovusGate Center Interface
 <div style="display: flex; flex-wrap: wrap; gap: 10px;">
   <img src="web/public/photo/installer/0.png" alt="Installer 0" width="45%">
   <img src="web/public/photo/installer/1.png" alt="Installer 1" width="45%">

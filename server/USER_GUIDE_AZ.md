@@ -6,7 +6,7 @@
 
 ## Quraşdırma
 
-*Qeyd: Avtomatik yerləşdirmə üçün **NovusGate Installer** istifadə etməyiniz tövsiyə olunur.*
+*Qeyd: Avtomatik yerləşdirmə üçün **NovusGate Center** istifadə etməyiniz tövsiyə olunur.*
 
 ### Docker Yerləşdirməsi (Manual)
 
