@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NovusGate Server Manager</title>
+  <title>NovusGate Center</title>
   <style>
     :root {
       --bg: #0a0f1a;
@@ -688,7 +688,7 @@
   <div class="app">
     <!-- Sidebar -->
     <aside class="sidebar">
-      <div class="logo">🌐 NovusGate</div>
+      <div class="logo">🌐 NovusGate Center</div>
       <div class="server-list-title">Servers</div>
       <div class="server-list" id="serverList">
         <!-- Server items rendered here -->
@@ -744,10 +744,69 @@
           <label>Username</label>
           <input type="text" id="serverUsername" required placeholder="root">
         </div>
+        
+        <script>
+            function toggleAuthMethod(method) {
+                document.querySelectorAll('.auth-btn').forEach(b => b.classList.remove('active'));
+                document.getElementById('btnAuth' + method).classList.add('active');
+                
+                if (method === 'Pass') {
+                    document.getElementById('authPassGroup').style.display = 'block';
+                    document.getElementById('authKeyGroup').style.display = 'none';
+                    document.getElementById('serverPassword').required = false; // logic handled in JS
+                } else {
+                    document.getElementById('authPassGroup').style.display = 'none';
+                    document.getElementById('authKeyGroup').style.display = 'block';
+                }
+            }
+        </script>
+        <style>
+            .auth-toggle {
+                display: flex;
+                gap: 8px;
+                margin-bottom: 12px;
+                background: var(--bg-input);
+                padding: 4px;
+                border-radius: 8px;
+                border: 1px solid var(--border);
+            }
+            .auth-btn {
+                flex: 1;
+                padding: 8px;
+                text-align: center;
+                cursor: pointer;
+                border-radius: 6px;
+                font-size: 0.9rem;
+                color: var(--text-muted);
+                transition: all 0.2s;
+            }
+            .auth-btn.active {
+                background: var(--bg-card);
+                color: var(--text);
+                box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+                border: 1px solid var(--border);
+            }
+        </style>
+
         <div class="form-group">
+            <label>Authentication Method</label>
+            <div class="auth-toggle">
+                <div class="auth-btn active" id="btnAuthPass" onclick="toggleAuthMethod('Pass')">Password</div>
+                <div class="auth-btn" id="btnAuthKey" onclick="toggleAuthMethod('Key')">SSH Key</div>
+            </div>
+        </div>
+
+        <div class="form-group" id="authPassGroup">
           <label>Password</label>
           <input type="password" id="serverPassword" placeholder="••••••••" autocomplete="current-password">
         </div>
+
+        <div class="form-group" id="authKeyGroup" style="display: none;">
+            <label>Private Key (PEM Format)</label>
+            <textarea id="serverPrivateKey" rows="5" placeholder="-----BEGIN RSA PRIVATE KEY-----..." style="font-family: monospace; font-size: 0.8rem;"></textarea>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Paste your private key content here.</div>
+        </div>
+
         <div class="modal-actions">
           <button type="button" class="btn" onclick="closeModal('addServerModal')">Cancel</button>
           <button type="submit" class="btn btn-primary">Add Server</button>
@@ -1044,6 +1103,7 @@
     let servers = [];
     let selectedServer = null;
     let isProcessRunning = false;
+    let pollingInterval = null;
     
     // Load servers on start
     async function loadServers() {
@@ -1076,34 +1136,59 @@
     }
     
     async function selectServer(id) {
+      if (pollingInterval) clearInterval(pollingInterval);
+      
       selectedServer = servers.find(s => s.id === id);
       renderServerList();
       document.getElementById('serverTitle').textContent = selectedServer.name;
       document.getElementById('refreshBtn').style.display = 'inline-block';
+      
       await refreshStatus();
+      
+      // Start polling
+      pollingInterval = setInterval(() => refreshStatus(true), 10000);
     }
     
-    async function refreshStatus() {
+    async function refreshStatus(silent = false) {
       if (!selectedServer) return;
       
-      document.getElementById('mainContent').innerHTML = '<div class="empty-state"><div class="loading"></div><p style="margin-top: 12px;">Loading...</p></div>';
+      const content = document.getElementById('mainContent');
+      // Save scroll position
+      const scrollPos = content.scrollTop;
+      
+      if (!silent) {
+        content.innerHTML = '<div class="empty-state"><div class="loading"></div><p style="margin-top: 12px;">Loading...</p></div>';
+      } else {
+        // Optional: Show small loader in header?
+        const btn = document.getElementById('refreshBtn');
+        if(btn) btn.textContent = '↻ ...';
+      }
       
       try {
         const res = await fetch(`/api/servers/${selectedServer.id}/status`);
         const status = await res.json();
         
-        if (!res.ok) {
-          throw new Error(status.error);
-        }
+        if (!res.ok) throw new Error(status.error);
         
         renderServerDashboard(status);
+        
+        // Restore scroll and reset button
+        content.scrollTop = scrollPos;
+        const btn = document.getElementById('refreshBtn');
+        if(btn) btn.textContent = '↻ Refresh';
+        
       } catch (err) {
-        document.getElementById('mainContent').innerHTML = `
-          <div class="card">
-            <div style="color: var(--danger)">Error: ${err.message}</div>
-            <button class="btn btn-primary" style="margin-top: 15px" onclick="refreshStatus()">Retry</button>
-          </div>
-        `;
+        if (!silent) {
+          content.innerHTML = `
+            <div class="card">
+              <div style="color: var(--danger)">Error: ${err.message}</div>
+              <button class="btn btn-primary" style="margin-top: 15px" onclick="refreshStatus()">Retry</button>
+            </div>
+          `;
+        } else {
+            console.error('Polling error:', err);
+            // Don't destroy UI on silent poll error
+        }
       }
     }
     
@@ -1716,8 +1801,22 @@
         host: document.getElementById('serverHost').value,
         port: parseInt(document.getElementById('serverPort').value) || 22,
         username: document.getElementById('serverUsername').value,
-        password: document.getElementById('serverPassword').value
       };
+
+      // Determine auth method logic
+      const isKeyAuth = document.getElementById('btnAuthKey') && document.getElementById('btnAuthKey').classList.contains('active');
+      
+      if (isKeyAuth) {
+          const privateKey = document.getElementById('serverPrivateKey').value;
+          if (!privateKey.trim()) {
+              alert('Please enter your SSH Private Key');
+              return;
+          }
+          server.privateKey = privateKey;
+      } else {
+          // Password auth
+          server.password = document.getElementById('serverPassword').value;
+      }
       
       try {
         await fetch('/api/servers', {

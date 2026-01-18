@@ -1619,6 +1619,6 @@ fail2banModule.registerRoutes(app, loadServers, createSSHConnection);
 // Start server
 const PORT = process.env.PORT || 3017;
 app.listen(PORT, () => {
-  console.log(`NovusGate Server Manager: http://localhost:${PORT}`);
+  console.log(`NovusGate Center: http://localhost:${PORT}`);
   console.log(`Server data: ${SERVERS_FILE}`);
 });
