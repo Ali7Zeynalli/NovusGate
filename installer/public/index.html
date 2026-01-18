@@ -682,7 +682,22 @@
     .btn-mini.success { background: var(--success); color: white; }
     .btn-mini.warning { background: var(--warning); color: black; }
     .btn-mini.danger { background: var(--danger); color: white; }
+
+    /* Terminal */
+    .terminal-container {
+        width: 100%;
+        height: 500px;
+        background: #000;
+        padding: 5px;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+    .xterm-viewport { overflow-y: auto !important; }
   </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.1.0/css/xterm.css" />
+  <script src="https://cdn.jsdelivr.net/npm/xterm@5.1.0/lib/xterm.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.7.0/lib/xterm-addon-fit.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
   <div class="app">
@@ -696,6 +711,7 @@
       <button class="add-server-btn" onclick="showAddServerModal()">+ New Server</button>
       
       <div class="footer">
+        <p>NovusGate Center v1.1</p>
         <p>Developed by <a href="https://github.com/Ali7Zeynalli" target="_blank">Ali Zeynalli</a></p>
         <div style="margin-top: 8px; display: flex; gap: 12px; justify-content: center;">
           <a href="https://github.com/Ali7Zeynalli" target="_blank">GitHub</a>
@@ -805,6 +821,9 @@
             <label>Private Key (PEM Format)</label>
             <textarea id="serverPrivateKey" rows="5" placeholder="-----BEGIN RSA PRIVATE KEY-----..." style="font-family: monospace; font-size: 0.8rem;"></textarea>
             <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Paste your private key content here.</div>
+
+            <label style="margin-top: 10px;">Passphrase (Optional)</label>
+            <input type="password" id="serverPassphrase" placeholder="Key Passphrase (if encrypted)">
         </div>
 
         <div class="modal-actions">
@@ -814,6 +833,16 @@
       </form>
     </div>
   </div>
+  <div class="modal" id="terminalModal">
+    <div class="modal-content" style="max-width: 900px; width: 95%;">
+        <div class="card-header" style="margin-bottom: 0; border: none; padding-bottom: 10px;">
+            <h2 class="modal-title" style="margin: 0;">💻 Web Terminal</h2>
+            <button class="btn btn-sm btn-danger" onclick="closeTerminal()">Close Session</button>
+        </div>
+        <div id="terminal" class="terminal-container"></div>
+    </div>
+  </div>
+
     <!-- Config Modal -->
     <div id="configModal" class="modal">
       <div class="modal-content" style="max-width: 700px;">
@@ -1104,6 +1133,52 @@
     let selectedServer = null;
     let isProcessRunning = false;
     let pollingInterval = null;
+    let socket = null;
+    let term = null;
+    let fitAddon = null;
+
+    // Terminal Functions
+    function openTerminal() {
+        if (!selectedServer) return;
+        document.getElementById('terminalModal').classList.add('active');
+        
+        if (!socket) socket = io();
+        
+        if (!term) {
+            term = new Terminal({
+                cursorBlink: true,
+                theme: { background: '#000000' }
+            });
+            fitAddon = new FitAddon.FitAddon();
+            term.loadAddon(fitAddon);
+            term.open(document.getElementById('terminal'));
+            
+            term.onData((data) => {
+                socket.emit('input', data);
+            });
+            
+            socket.on('output', (data) => {
+                term.write(data);
+            });
+        }
+        
+        fitAddon.fit();
+        term.clear();
+        socket.emit('start-session', selectedServer.id);
+    }
+    
+    function closeTerminal() {
+        document.getElementById('terminalModal').classList.remove('active');
+        if (socket) {
+            socket.disconnect();
+            socket = null;
+        }
+        if (term) {
+            term.dispose();
+            term = null;
+            fitAddon = null;
+        }
+    }
     
     // Load servers on start
     async function loadServers() {
@@ -1274,8 +1349,18 @@
           
           <!-- Right: Compact Actions -->
           <div class="card">
-            <div style="font-size: 0.85rem; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">⚡ Actions</div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <div style="font-size: 0.85rem; font-weight: 600; margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">🚀 Quick Actions</div>
+            <div class="action-grid" style="grid-template-columns: 1fr 1fr;">
+              
+              <button class="action-btn-compact" onclick="openTerminal()">
+                <span style="font-size: 1.2rem;">💻</span>
+                <span>Terminal</span>
+              </button>
+              
+              <button class="action-btn-compact" onclick="showCredentials()">
+                <span style="font-size: 1.2rem;">🔑</span>
+                <span>Credentials</span>
+              </button>
               <button class="action-btn-compact" onclick="installServer('local')">
                 <span>📦</span> Install
               </button>
@@ -1291,9 +1376,7 @@
               <button class="action-btn-compact danger" onclick="uninstallNovusGate()">
                 <span>🗑️</span> Uninstall
               </button>
-              <button class="action-btn-compact" onclick="showCredentials()" style="border-color: var(--accent);">
-                <span>🔑</span> Credentials
-              </button>
+
               <button class="action-btn-compact muted" onclick="deleteServer()">
                 <span>❌</span> Remove
               </button>
@@ -1808,11 +1891,14 @@
       
       if (isKeyAuth) {
           const privateKey = document.getElementById('serverPrivateKey').value;
+          const passphrase = document.getElementById('serverPassphrase').value; // Get passphrase
+          
           if (!privateKey.trim()) {
               alert('Please enter your SSH Private Key');
               return;
           }
           server.privateKey = privateKey;
+          if (passphrase) server.passphrase = passphrase; // Add only if present
       } else {
           // Password auth
           server.password = document.getElementById('serverPassword').value;

@@ -577,6 +577,8 @@ Access via **Firewall** page in the dashboard.
   <img src="web/public/photo/installer/0.png" alt="Installer 0" width="45%">
   <img src="web/public/photo/installer/1.png" alt="Installer 1" width="45%">
   <img src="web/public/photo/installer/2.png" alt="Installer 2" width="45%">
+  <img src="web/public/photo/installer/3.png" alt="Installer 3" width="45%">
+  <img src="web/public/photo/installer/4.png" alt="Installer 4" width="45%">
 </div>
 
 ---

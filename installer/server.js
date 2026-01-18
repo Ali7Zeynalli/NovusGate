@@ -61,6 +61,7 @@ function createSSHConnection(server) {
     
     if (server.privateKey) {
       config.privateKey = server.privateKey;
+      if (server.passphrase) config.passphrase = server.passphrase;
     } else if (server.password) {
       config.password = server.password;
     }
@@ -109,7 +110,7 @@ app.get('/api/servers', (req, res) => {
 
 // POST /api/servers - Add new server
 app.post('/api/servers', (req, res) => {
-  const { name, host, port, username, password, privateKey } = req.body;
+  const { name, host, port, username, password, privateKey, passphrase } = req.body;
   
   if (!name || !host || !username) {
     return res.status(400).json({ error: 'Name, host, and username are required' });
@@ -124,6 +125,7 @@ app.post('/api/servers', (req, res) => {
     username,
     password,
     privateKey,
+    passphrase,
     status: 'unknown',
     lastCheck: null,
     installedAt: null,
@@ -1617,8 +1619,112 @@ app.get('/api/health', (req, res) => {
 fail2banModule.registerRoutes(app, loadServers, createSSHConnection);
 
 // Start server
+// Start server
+const http = require('http');
+const { Server } = require("socket.io");
+
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: "*", // allow all for now
+    methods: ["GET", "POST"]
+  }
+});
+
+// Socket.IO SSH Terminal Logic
+io.on('connection', (socket) => {
+  console.log('Client connected to terminal:', socket.id);
+  let conn = null;
+  let stream = null;
+
+  socket.on('start-session', async (serverId) => {
+    try {
+      const data = loadServers();
+      const serverConfig = data.servers.find(s => s.id === serverId);
+      
+      if (!serverConfig) {
+        socket.emit('output', '\r\nServer not found.\r\n');
+        return;
+      }
+
+      socket.emit('output', `\r\nConnecting to ${serverConfig.host}...\r\n`);
+      
+      conn = new Client();
+      
+      conn.on('ready', () => {
+        socket.emit('output', '\r\nConnected! Opening shell...\r\n');
+        
+        conn.shell((err, s) => {
+          if (err) {
+            socket.emit('output', `\r\nShell error: ${err.message}\r\n`);
+            return;
+          }
+          
+          stream = s;
+          
+          // Data from server -> Client
+          stream.on('data', (data) => {
+            socket.emit('output', data.toString());
+          });
+          
+          stream.on('close', () => {
+            socket.emit('output', '\r\nConnection closed by remote host.\r\n');
+            conn.end();
+          });
+          
+        });
+      });
+      
+      conn.on('error', (err) => {
+        socket.emit('output', `\r\nConnection error: ${err.message}\r\n`);
+      });
+      
+      conn.on('close', () => {
+        socket.emit('output', '\r\nDisconnected.\r\n');
+      });
+
+      // Prepare config
+      const config = {
+        host: serverConfig.host,
+        port: serverConfig.port || 22,
+        username: serverConfig.username,
+        readyTimeout: 30000
+      };
+      
+      if (serverConfig.privateKey) {
+        config.privateKey = serverConfig.privateKey;
+      } else if (serverConfig.password) {
+        config.password = serverConfig.password;
+      }
+
+      conn.connect(config);
+
+    } catch (err) {
+      socket.emit('output', `\r\nError: ${err.message}\r\n`);
+    }
+  });
+
+  // Data from Client -> Server
+  socket.on('input', (data) => {
+    if (stream) {
+      stream.write(data);
+    }
+  });
+
+  socket.on('resize', (size) => {
+    if (stream) {
+      stream.setWindow(size.rows, size.cols, size.height, size.width);
+    }
+  });
+
+  socket.on('disconnect', () => {
+    if (conn) conn.end();
+    console.log('Client disconnected:', socket.id);
+  });
+});
+
 const PORT = process.env.PORT || 3017;
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`NovusGate Center: http://localhost:${PORT}`);
   console.log(`Server data: ${SERVERS_FILE}`);
 });
