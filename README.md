@@ -261,6 +261,8 @@ A standalone **Node.js** tool that simplifies deployment on Linux servers via SS
 
 ### Installation Process (Step-by-Step)
 
+> **Note:** This process launches the **NovusGate Installer**, a web-based wizard that will guide you through setting up the server, database, and VPN configurations.
+
 #### Step 1: Clone the Repository
 
 ```bash
@@ -378,9 +380,62 @@ After accessing the dashboard, you can:
 
 ---
 
-### Manual Installation
+### Technical Details: What does the Installer do?
 
-For advanced users who prefer manual setup, refer to:
+The installer automates the setup on your remote Linux server. Here is exactly what happens under the hood:
+
+1.  **System Updates**: Runs `apt-get update` to ensure fresh packages.
+2.  **Dependencies**: Installs `docker`, `docker-compose`, `wireguard`, and `fail2ban`.
+3.  **File Placement**:
+    -   Installation Directory: `/opt/NovusGate`
+    -   Admin VPN Config: `/opt/NovusGate/admin-vpn.conf`
+4.  **Security Setup**:
+    -   Generates secure random secrets for Database, JWT, and API Keys.
+    -   Configures `fail2ban` jail for SSH protection.
+    -   Sets up `wg0` WireGuard interface for the Admin Network.
+5.  **Service Startup**:
+    -   Creates `.env` files in `/opt/NovusGate/server/deployments/docker/` and `/opt/NovusGate/web/`.
+    -   Launches services using `docker-compose up -d`.
+
+This ensures a standardized, secure, and production-ready environment without manual configuration.
+
+---
+
+### Local Development / Manual Run
+
+If you want to run NovusGate locally (without the Installer wizard) for development or testing:
+
+1. Navigate to the docker deployment directory:
+   ```bash
+   cd server/deployments/docker
+   ```
+
+3.  **Configure Environment**:
+    ```bash
+    cp .env.example .env
+    # Edit .env and set ADMIN_PASSWORD at minimum
+    nano .env
+    ```
+
+4.  **Start the services**:
+    ```bash
+    docker-compose up -d --build
+    ```
+
+   This will start:
+   - **PostgreSQL** (Database)
+   - **Control Plane** (Backend API on port 8080)
+   - **Web Dashboard** (Frontend on port 3007)
+
+3. Access the dashboard at `http://localhost:3007`
+
+> **Note:** For full VPN functionality, this requires a Linux environment with WireGuard kernel modules. On Windows/Mac, some VPN features may be limited, but the UI and API will function.
+
+---
+
+### Manual Production Installation
+
+For advanced users who prefer manual setup on a production server, refer to:
 👉 **[Server User Guide](./server/USER_GUIDE.md)**
 
 ---

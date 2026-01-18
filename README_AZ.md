@@ -260,6 +260,8 @@ Linux serverlərində SSH vasitəsilə yerləşdirməni sadələşdirmək üçü
 
 ### Quraşdırma Prosesi (Addım-Addım)
 
+> **Qeyd:** Bu proses **NovusGate Installer** (Quraşdırma Paneli) -ni işə salır. Bu panel vasitəsilə siz serveri, məlumat bazasını və VPN şəbəkəsini asanlıqla quraşdıra bilərsiniz.
+
 #### Addım 1: Repozitoriyanı Klonlayın
 
 ```bash
@@ -377,9 +379,62 @@ Dashboard-a daxil olduqdan sonra edə bilərsiniz:
 
 ---
 
-### Əl ilə Quraşdırma (Manual)
+### Texniki Detallar: Installer Nə Edir?
 
-Manual quraşdırmanı üstün tutan təcrübəli istifadəçilər üçün:
+Installer uzaq Linux serverinizdə quraşdırmanı avtomatlaşdırır. Arxa planda baş verən proseslər bunlardır:
+
+1.  **Sistem Yeniləmələri**: Paketlərin təzə olduğundan əmin olmaq üçün `apt-get update` icra edir.
+2.  **Asılılıqlar**: `docker`, `docker-compose`, `wireguard` və `fail2ban` quraşdırır.
+3.  **Fayl Yerləşimi**:
+    -   Quraşdırma Qovluğu: `/opt/NovusGate`
+    -   Admin VPN Konfiqurasiyası: `/opt/NovusGate/admin-vpn.conf`
+4.  **Təhlükəsizlik Quraşdırması**:
+    -   Verilənlər bazası, JWT və API açarları üçün təhlükəsiz təsadüfi sirrlər (secrets) yaradır.
+    -   SSH qorunması üçün `fail2ban` jail-ini konfiqurasiya edir.
+    -   Admin Şəbəkəsi üçün `wg0` WireGuard interfeysini qurur.
+5.  **Xidmətlərin Başladılması**:
+    -   `/opt/NovusGate/server/deployments/docker/` və `/opt/NovusGate/web/` qovluqlarında `.env` faylları yaradır.
+    -   `docker-compose up -d` istifadə edərək xidmətləri işə salır.
+
+Bu, əl ilə konfiqurasiya olmadan standartlaşdırılmış, təhlükəsiz və istehsalata hazır (production-ready) bir mühit təmin edir.
+
+---
+
+### Lokal İnkişaf / Manual İşə Salma
+
+Əgər NovusGate-i quraşdırıcı ("installer wizard") olmadan, inkişaf (development) və ya test məqsədilə lokal kompüterinizdə işə salmaq istəyirsinizsə:
+
+1. Docker deployment qovluğuna keçid edin:
+   ```bash
+   cd server/deployments/docker
+   ```
+
+2.  **Mühiti Konfiqurasiya Edin (.env)**:
+    ```bash
+    cp .env.example .env
+    # .env faylını açın və ən azı ADMIN_PASSWORD təyin edin
+    nano .env
+    ```
+
+3.  **Xidmətləri başladın**:
+    ```bash
+    docker-compose up -d --build
+    ```
+
+   Bu əmr aşağıdakıları başladacaq:
+   - **PostgreSQL** (Məlumat bazası)
+   - **Control Plane** (Backend API - port 8080)
+   - **Web Dashboard** (Frontend - port 3007)
+
+3. Dashboard-a daxil olun: `http://localhost:3007`
+
+> **Qeyd:** Tam VPN funksionallığı üçün WireGuard kernel modullarına malik Linux mühiti tələb olunur. Windows/Mac əməliyyat sistemlərində bəzi VPN funksiyaları məhdud ola bilər, lakin UI və API tam işlək vəziyyətdə olacaq.
+
+---
+
+### Əl ilə Quraşdırma (Manual Production)
+
+İstehsalat (production) mühitində manual quraşdırmanı üstün tutan təcrübəli istifadəçilər üçün:
 👉 **[Server İstifadəçi Təlimatı](./server/USER_GUIDE_AZ.md)**
 
 ---
