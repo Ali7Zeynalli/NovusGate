@@ -49,10 +49,10 @@ If you need a "full tunnel" VPN to hide all your traffic, NovusGate is not the r
 │   Your Server   │     │  NovusGate Hub  │     │  Your Computer  │
 │   (No Static IP)│     │   (Cloud VPS)   │     │  (Home/Office)  │
 │                 │     │                 │     │                 │
-│   10.10.10.2    │────▶│   10.10.10.1    │◀────│   10.10.10.3    │
+│   10.10.10.2    │───▶│   10.10.10.1    │◀───│   10.10.10.3    │
 └─────────────────┘     └─────────────────┘     └─────────────────┘
          │                     ▲                     │
-         └────────── Both connect to Hub ──────────┘
+         └────────── Both connect to Hub ────────────┘
 ```
 
 Once both devices connect to NovusGate:
@@ -186,22 +186,22 @@ Just clean networking.
 NovusGate is designed as a **modular system**, separating control, interface, and deployment for maximum flexibility and maintainability.
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                     NovusGate Server                        │
+┌────────────────────────────────────────────────────────────┐
+│                     NovusGate Server                       │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐         │
 │  │  Network 1  │  │  Network 2  │  │  Network N  │         │
 │  │   wg0:51820 │  │   wg1:51821 │  │   wgN:518XX │         │
 │  │ 10.10.0.0/24│  │ 10.20.0.0/24│  │ 10.XX.0.0/24│         │
 │  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘         │
-│         │                │                │                 │
+│         │                │                │                │
 │  ┌──────┴────────────────┴────────────────┴──────┐         │
 │  │              REST API (Go Backend)            │         │
 │  │                 PostgreSQL DB                 │         │
 │  └───────────────────────────────────────────────┘         │
-└─────────────────────────────────────────────────────────────┘
-                            │
-              ┌─────────────┼─────────────┐
-              │             │             │
+└────────────────────────────────────────────────────────────┘
+                           │
+              ┌────────────┼────────────┐
+              │            │            │
          ┌────┴────┐  ┌────┴────┐  ┌────┴────┐
          │ Client  │  │ Client  │  │ Client  │
          │ (Phone) │  │ (Laptop)│  │ (Server)│
